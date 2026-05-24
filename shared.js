@@ -109,66 +109,196 @@ function renderSlide(slide, index, total, opts = {}) {
 
     let body = '';
 
-    if (slide.tag !== undefined) {
-        const tagStyle = slide.tagSize ? `style="font-size: ${slide.tagSize}px"` : '';
-        body += `<div class="ig-tag" ${tagStyle}><span ${ed('tag','TAG')}>${escapeForCE(slide.tag)}</span></div>`;
-    }
-    if (slide.kind === 'metric' && slide.metric) {
-        body += `<div class="ig-metric" ${ed('metric','000')}>${escapeForCE(slide.metric)}</div>`;
-    }
-    if (slide.headline !== undefined && slide.kind !== 'subtext') {
-        const headStyle = slide.headlineSize ? `style="font-size: ${slide.headlineSize}px"` : '';
-        body += `<h1 class="ig-h1" ${headStyle} ${ed('headline','Your headline')}>${slide.headline}</h1>`;
-    }
-    // divider on simple text slides
-    if (slide.kind === 'text' || slide.kind === 'hook' || slide.kind === 'cta' || slide.kind === 'metric' || slide.kind === 'subtext') {
-        body += `<div class="ig-divider"></div>`;
-    }
-    if (slide.sub !== undefined && slide.kind !== 'code') {
-        const subStyle = slide.subSize ? `style="font-size: ${slide.subSize}px"` : '';
-        body += `<p class="ig-sub" ${subStyle} ${ed('sub','Subtext')}>${escapeForCE(slide.sub)}</p>`;
-    }
-    if (slide.kind === 'code' && slide.code !== undefined) {
-        const codeBlock = `<pre class="ig-code" ${ed('code','// your prompt')}>${escapeForCE(slide.code)}</pre>`;
-        const codeText = slide.sub !== undefined ? `<p class="ig-sub" ${slide.subSize ? `style="font-size: ${slide.subSize}px"` : ''} ${ed('sub','Subtext')}>${escapeForCE(slide.sub)}</p>` : '';
-        body += slide.codeSwap ? `${codeText}${codeBlock}` : `${codeBlock}${codeText}`;
-    }
-    if (slide.kind === 'list' && Array.isArray(slide.list)) {
-        body += `<ul class="ig-list">`;
-        slide.list.forEach((item, i) => {
-            body += `<li><span class="num">${String(i+1).padStart(2,'0')}</span><span ${ed('list-'+i,'List item')}>${escapeForCE(item)}</span></li>`;
+    if (slide.kind === 'magazine-cover') {
+        const bgText = slide.bgText !== undefined ? slide.bgText : 'PORTFOLIO';
+        const metaLeft = slide.metaLeft !== undefined ? slide.metaLeft : 'JUNE 09, 2026';
+        const metaRight = slide.metaRight !== undefined ? slide.metaRight : '@BASH77';
+        const imgScale = slide.imgScale || 1;
+        const imgYOffset = slide.imgYOffset || 0;
+        const tag = slide.tag !== undefined ? slide.tag : 'GRAPHIC DESIGN';
+        const headline = slide.headline !== undefined ? slide.headline : 'BRAND IDENTITY';
+        const sub = slide.sub !== undefined ? slide.sub : 'Description goes here...';
+
+        const tagAlignVal = slide.tagAlign || 'left';
+        const tagFlex = tagAlignVal === 'center' ? 'center' : (tagAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const tagSizeVal = slide.tagSize || 24;
+
+        const headlineAlignVal = slide.headlineAlign || 'left';
+        const headlineFlex = headlineAlignVal === 'center' ? 'center' : (headlineAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const headlineSizeVal = slide.headlineSize || 56;
+
+        const subAlignVal = slide.subAlign || 'left';
+        const subFlex = subAlignVal === 'center' ? 'center' : (subAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const subSizeVal = slide.subSize || 24;
+
+        const bgTextAlignVal = slide.bgTextAlign || 'center';
+        const bgTextSizeVal = slide.bgTextSize || 230;
+
+        const metaTextSizeVal = slide.metaTextSize || 20;
+
+        body += `
+            <div class="cover-meta-header" style="font-size: ${metaTextSizeVal}px; font-family: ${slide.metaTextFont || 'inherit'}; color: ${slide.metaTextColor || 'inherit'};">
+                <span ${ed('metaLeft','')}>${escapeForCE(metaLeft)}</span>
+                <span ${ed('metaRight','')}>${escapeForCE(metaRight)}</span>
+            </div>
+            <div class="cover-bg-text-wrapper">
+                <div class="cover-bg-text" ${ed('bgText','')} style="font-size: ${bgTextSizeVal}px; text-align: ${bgTextAlignVal}; transform: translateY(${slide.bgTextYOffset || 0}px); font-family: ${slide.bgTextFont || 'inherit'}; color: ${slide.bgTextColor || 'inherit'};">${escapeForCE(bgText)}</div>
+            </div>
+            <div class="cover-subject-wrapper">
+                ${slide.image ? `<img src="${slide.image}" class="cover-subject" style="transform: scale(${imgScale}) translateY(${imgYOffset}px);" />` : `<div class="img-placeholder img-upload-placeholder-slide"><span style="font-size:40px;">👤</span><span>Upload Subject Image</span></div>`}
+            </div>
+            <div class="cover-footer">
+                <div class="cover-footer-tag" style="align-self: ${tagFlex}; text-align: ${tagAlignVal}; font-size: ${tagSizeVal}px; font-family: ${slide.tagFont || 'inherit'}; color: ${slide.tagColor || 'inherit'};"><span ${ed('tag','')}>${escapeForCE(tag)}</span></div>
+                <div class="cover-footer-title" ${ed('headline','')} style="align-self: ${headlineFlex}; text-align: ${headlineAlignVal}; font-size: ${headlineSizeVal}px; font-family: ${slide.headlineFont || 'inherit'}; color: ${slide.headlineColor || 'inherit'};">${headline}</div>
+                <div class="cover-footer-desc" ${ed('sub','')} style="align-self: ${subFlex}; text-align: ${subAlignVal}; font-size: ${subSizeVal}px; font-family: ${slide.subFont || 'inherit'}; color: ${slide.subColor || 'inherit'};">${escapeForCE(sub)}</div>
+            </div>
+        `;
+    } 
+    else if (slide.kind === 'floating-glass') {
+        const imgScale = slide.imgScale || 1;
+        const imgYOffset = slide.imgYOffset || 0;
+        const badges = Array.isArray(slide.badges) ? slide.badges : ['Photoshop', 'Illustrator', 'CapCut', 'AI Models'];
+        const headline = slide.headline !== undefined ? slide.headline : 'Elevate Your Identity';
+        const sub = slide.sub !== undefined ? slide.sub : 'With Visual Design & Branding';
+
+        const headlineAlignVal = slide.headlineAlign || 'left';
+        const headlineFlex = headlineAlignVal === 'center' ? 'center' : (headlineAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const headlineSizeVal = slide.headlineSize || 56;
+
+        const subAlignVal = slide.subAlign || 'left';
+        const subFlex = subAlignVal === 'center' ? 'center' : (subAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const subSizeVal = slide.subSize || 24;
+
+        const badgeSizeVal = slide.badgeSize || 22;
+        const badgeFontVal = slide.badgeFont || 'inherit';
+        const badgeColorVal = slide.badgeColor || 'inherit';
+        const badgeIconColorVal = slide.badgeIconColor || 'var(--indigo)';
+
+        let badgeHTML = '';
+        badges.forEach((b, i) => {
+            badgeHTML += `
+                <div class="glass-card-badge glass-badge-${i}" style="font-size: ${badgeSizeVal}px; font-family: ${badgeFontVal}; color: ${badgeColorVal};">
+                    <div class="badge-icon" style="background: ${badgeIconColorVal};">⚡</div>
+                    <span ${ed('badge-'+i,'')}>${escapeForCE(b)}</span>
+                </div>
+            `;
         });
-        body += `</ul>`;
-    }
-    if (slide.kind === 'ba' && slide.ba) {
-        const beforeCard = `
-            <div class="ig-ba-card before">
-                <div class="lbl">Before</div>
-                <div class="txt" ${ed('ba-before','Before copy')}>${escapeForCE(slide.ba.before)}</div>
+
+        body += `
+            <div class="glass-container">
+                ${slide.image ? `<img src="${slide.image}" class="glass-subject" style="transform: scale(${imgScale}) translateY(${imgYOffset}px);" />` : `<div class="img-placeholder img-upload-placeholder-slide"><span style="font-size:40px;">👤</span><span>Upload Subject Image</span></div>`}
+                ${badgeHTML}
+            </div>
+            <div class="cover-footer" style="position: absolute; bottom: 80px; left: 96px; right: 96px; display: flex; flex-direction: column;">
+                <div class="cover-footer-title" ${ed('headline','')} style="align-self: ${headlineFlex}; text-align: ${headlineAlignVal}; font-size: ${headlineSizeVal}px; font-family: ${slide.headlineFont || 'inherit'}; color: ${slide.headlineColor || 'inherit'};">${headline}</div>
+                <div class="cover-footer-desc" ${ed('sub','')} style="align-self: ${subFlex}; text-align: ${subAlignVal}; font-size: ${subSizeVal}px; font-family: ${slide.subFont || 'inherit'}; color: ${slide.subColor || 'inherit'};">${escapeForCE(sub)}</div>
             </div>
         `;
-        const afterCard = `
-            <div class="ig-ba-card after">
-                <div class="lbl">After</div>
-                <div class="txt" ${ed('ba-after','After copy')}>${escapeForCE(slide.ba.after)}</div>
+    }
+    else if (slide.kind === 'split-comparison') {
+        const tag = slide.tag !== undefined ? slide.tag : 'BEFORE / AFTER';
+        const headline = slide.headline !== undefined ? slide.headline : 'Same product. Different framing.';
+        const leftLabel = slide.leftLabel !== undefined ? slide.leftLabel : 'Before';
+        const rightLabel = slide.rightLabel !== undefined ? slide.rightLabel : 'After';
+        const sub = slide.sub !== undefined ? slide.sub : 'Outcomes dictate everything.';
+
+        const tagAlignVal = slide.tagAlign || 'left';
+        const tagFlex = tagAlignVal === 'center' ? 'center' : (tagAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const tagSizeVal = slide.tagSize || 24;
+
+        const headlineAlignVal = slide.headlineAlign || 'left';
+        const headlineFlex = headlineAlignVal === 'center' ? 'center' : (headlineAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const headlineSizeVal = slide.headlineSize || 72;
+
+        const subAlignVal = slide.subAlign || 'left';
+        const subFlex = subAlignVal === 'center' ? 'center' : (subAlignVal === 'right' ? 'flex-end' : 'flex-start');
+        const subSizeVal = slide.subSize || 28;
+
+        body += `
+            <div class="split-comp-header" style="display: flex; flex-direction: column;">
+                <div class="ig-tag" style="align-self: ${tagFlex}; text-align: ${tagAlignVal}; font-size: ${tagSizeVal}px; font-family: ${slide.tagFont || 'inherit'}; color: ${slide.tagColor || 'inherit'};"><span ${ed('tag','')}>${escapeForCE(tag)}</span></div>
+                <h1 class="ig-h1" style="font-size: ${headlineSizeVal}px; text-align: ${headlineAlignVal}; align-self: ${headlineFlex}; font-family: ${slide.headlineFont || 'inherit'}; color: ${slide.headlineColor || 'inherit'}; line-height: 1.1; margin-bottom: 0;" ${ed('headline','')}>${headline}</h1>
             </div>
+            <div class="split-comp-grid">
+                <div class="split-comp-col left-col">
+                    <div class="split-comp-img-wrapper">
+                        ${slide.leftImage ? `<img src="${slide.leftImage}" class="split-comp-img" />` : `<div class="img-placeholder img-upload-placeholder-slide"><span style="font-size:32px;">🖼️</span><span>Upload Left Image</span></div>`}
+                    </div>
+                    <div class="split-comp-col-label" ${ed('leftLabel','')}>${escapeForCE(leftLabel)}</div>
+                </div>
+                <div class="split-comp-col right-col">
+                    <div class="split-comp-img-wrapper">
+                        ${slide.rightImage ? `<img src="${slide.rightImage}" class="split-comp-img" />` : `<div class="img-placeholder img-upload-placeholder-slide"><span style="font-size:32px;">🖼️</span><span>Upload Right Image</span></div>`}
+                    </div>
+                    <div class="split-comp-col-label" ${ed('rightLabel','')}>${escapeForCE(rightLabel)}</div>
+                </div>
+            </div>
+            ${slide.sub !== undefined ? `<p class="ig-sub" style="font-size: ${subSizeVal}px; text-align: ${subAlignVal}; align-self: ${subFlex}; font-family: ${slide.subFont || 'inherit'}; color: ${slide.subColor || 'inherit'}; line-height:1.45;" ${ed('sub','')}>${escapeForCE(sub)}</p>` : ''}
         `;
-        body += `<div class="ig-ba">
-            ${slide.baSwap ? afterCard + beforeCard : beforeCard + afterCard}
-        </div>`;
     }
-    if (slide.kind === 'cta' && slide.cta) {
-        body += `<a class="ig-cta"><span ${ed('cta','Follow')}>${escapeForCE(slide.cta)}</span><span class="arr">→</span></a>`;
-    }
-    
-    // Custom Text and Image Block rendering
-    if (slide.extraText !== undefined) {
-        const exStyle = `font-size: ${slide.extraTextSize || 28}px; color: var(--ink-2); margin-top: 20px; font-weight: 500;`;
-        body += `<div class="ig-extra-text" style="${exStyle}" ${ed('extraText','Extra text')}>${escapeForCE(slide.extraText)}</div>`;
-    }
-    if (slide.image) {
-        const imgStyle = `width: ${slide.imageWidth || 60}%; align-self: ${slide.imageAlign || 'center'}; border-radius: 8px; margin-top: 24px; max-height: 480px; object-fit: contain; box-shadow: ${slide.imageBorder ? '0 12px 40px rgba(0,0,0,0.45)' : 'none'};`;
-        body += `<img src="${slide.image}" style="${imgStyle}" class="ig-image" />`;
+    else {
+        // Standard layouts
+        if (slide.tag !== undefined) {
+            const tagStyle = slide.tagSize ? `style="font-size: ${slide.tagSize}px"` : '';
+            body += `<div class="ig-tag" ${tagStyle}><span ${ed('tag','TAG')}>${escapeForCE(slide.tag)}</span></div>`;
+        }
+        if (slide.kind === 'metric' && slide.metric) {
+            body += `<div class="ig-metric" ${ed('metric','000')}>${escapeForCE(slide.metric)}</div>`;
+        }
+        if (slide.headline !== undefined && slide.kind !== 'subtext') {
+            const headStyle = slide.headlineSize ? `style="font-size: ${slide.headlineSize}px"` : '';
+            body += `<h1 class="ig-h1" ${headStyle} ${ed('headline','Your headline')}>${slide.headline}</h1>`;
+        }
+        // divider on simple text slides
+        if (slide.kind === 'text' || slide.kind === 'hook' || slide.kind === 'cta' || slide.kind === 'metric' || slide.kind === 'subtext') {
+            body += `<div class="ig-divider"></div>`;
+        }
+        if (slide.sub !== undefined && slide.kind !== 'code') {
+            const subStyle = slide.subSize ? `style="font-size: ${slide.subSize}px"` : '';
+            body += `<p class="ig-sub" ${subStyle} ${ed('sub','Subtext')}>${escapeForCE(slide.sub)}</p>`;
+        }
+        if (slide.kind === 'code' && slide.code !== undefined) {
+            const codeBlock = `<pre class="ig-code" ${ed('code','// your prompt')}>${escapeForCE(slide.code)}</pre>`;
+            const codeText = slide.sub !== undefined ? `<p class="ig-sub" ${slide.subSize ? `style="font-size: ${slide.subSize}px"` : ''} ${ed('sub','Subtext')}>${escapeForCE(slide.sub)}</p>` : '';
+            body += slide.codeSwap ? `${codeText}${codeBlock}` : `${codeBlock}${codeText}`;
+        }
+        if (slide.kind === 'list' && Array.isArray(slide.list)) {
+            body += `<ul class="ig-list">`;
+            slide.list.forEach((item, i) => {
+                body += `<li><span class="num">${String(i+1).padStart(2,'0')}</span><span ${ed('list-'+i,'List item')}>${escapeForCE(item)}</span></li>`;
+            });
+            body += `</ul>`;
+        }
+        if (slide.kind === 'ba' && slide.ba) {
+            const beforeCard = `
+                <div class="ig-ba-card before">
+                    <div class="lbl">Before</div>
+                    <div class="txt" ${ed('ba-before','Before copy')}>${escapeForCE(slide.ba.before)}</div>
+                </div>
+            `;
+            const afterCard = `
+                <div class="ig-ba-card after">
+                    <div class="lbl">After</div>
+                    <div class="txt" ${ed('ba-after','After copy')}>${escapeForCE(slide.ba.after)}</div>
+                </div>
+            `;
+            body += `<div class="ig-ba">
+                ${slide.baSwap ? afterCard + beforeCard : beforeCard + afterCard}
+            </div>`;
+        }
+        if (slide.kind === 'cta' && slide.cta) {
+            body += `<a class="ig-cta"><span ${ed('cta','Follow')}>${escapeForCE(slide.cta)}</span><span class="arr">→</span></a>`;
+        }
+        
+        // Custom Text and Image Block rendering
+        if (slide.extraText !== undefined) {
+            const exStyle = `font-size: ${slide.extraTextSize || 28}px; color: var(--ink-2); margin-top: 20px; font-weight: 500;`;
+            body += `<div class="ig-extra-text" style="${exStyle}" ${ed('extraText','Extra text')}>${escapeForCE(slide.extraText)}</div>`;
+        }
+        if (slide.image) {
+            const imgStyle = `width: ${slide.imageWidth || 60}%; align-self: ${slide.imageAlign || 'center'}; border-radius: 8px; margin-top: 24px; max-height: 480px; object-fit: contain; box-shadow: ${slide.imageBorder ? '0 12px 40px rgba(0,0,0,0.45)' : 'none'};`;
+            body += `<img src="${slide.image}" style="${imgStyle}" class="ig-image" />`;
+        }
     }
 
     const showSwipe = (index < total - 1);
@@ -186,18 +316,24 @@ function renderSlide(slide, index, total, opts = {}) {
         </div>
     `;
 
+    const isCoverKind = (slide.kind === 'magazine-cover' || slide.kind === 'floating-glass');
+    const headHTML = isCoverKind ? '' : `
+        <div class="ig-head">
+            ${brandHTML}
+            <div class="ig-idx"><span class="now">${String(index+1).padStart(2,'0')}</span> <span>/ ${String(total).padStart(2,'0')}</span></div>
+        </div>
+    `;
+    const footHTML = isCoverKind ? '' : footerHTML;
+
     return `
-        <div class="ig-slide ${bgClass} ${themeClass} ${editable ? 'editable' : ''}" data-slide-index="${index}">
+        <div class="ig-slide ${slide.kind || ''} ${bgClass} ${themeClass} ${editable ? 'editable' : ''}" data-slide-index="${index}">
             ${glowHTML}
             ${progressBarHTML}
-            <div class="ig-head">
-                ${brandHTML}
-                <div class="ig-idx"><span class="now">${String(index+1).padStart(2,'0')}</span> <span>/ ${String(total).padStart(2,'0')}</span></div>
-            </div>
+            ${headHTML}
             <div class="ig-body ${bodyAlign}">
                 ${body}
             </div>
-            ${footerHTML}
+            ${footHTML}
         </div>
     `;
 }
@@ -221,8 +357,18 @@ function readSlideEdits(slideEl, slide) {
         else if (f === 'code') out.code = val;
         else if (f === 'cta') out.cta = val;
         else if (f === 'extraText') out.extraText = val;
+        else if (f === 'bgText') out.bgText = val;
+        else if (f === 'metaLeft') out.metaLeft = val;
+        else if (f === 'metaRight') out.metaRight = val;
+        else if (f === 'leftLabel') out.leftLabel = val;
+        else if (f === 'rightLabel') out.rightLabel = val;
         else if (f === 'ba-before') out.ba = { ...(out.ba||{}), before: val };
         else if (f === 'ba-after')  out.ba = { ...(out.ba||{}), after: val };
+        else if (f.startsWith('badge-')) {
+            const i = parseInt(f.slice(6), 10);
+            out.badges = (out.badges||[]).slice();
+            out.badges[i] = val;
+        }
         else if (f.startsWith('list-')) {
             const i = parseInt(f.slice(5), 10);
             out.list = (out.list||[]).slice();
