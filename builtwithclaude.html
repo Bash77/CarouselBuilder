@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ContentCore Studio — Built with Claude</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Outfit', 'system-ui', 'sans-serif'],
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          ink: {
+            900: '#06060c',
+            800: '#0b0b14',
+            700: '#11111d',
+            600: '#161628',
+          },
+          glow: {
+            500: '#4f46e5',
+            400: '#6366f1',
+            300: '#818cf8',
+            200: '#a5b4fc',
+          },
+        },
+        boxShadow: {
+          glow: '0 0 60px -10px rgba(99, 102, 241, 0.5)',
+          'glow-lg': '0 0 120px -20px rgba(99, 102, 241, 0.45)',
+          card: '0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #06060c;
+    color: #f1f5f9;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 0%, rgba(79, 70, 229, 0.18), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 30%, rgba(129, 140, 248, 0.08), transparent 70%),
+      #06060c;
+    min-height: 100vh;
+  }
+  /* Soft grid overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent 75%);
+    z-index: 0;
+  }
+
+  /* Big display headlines */
+  .display {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 0.98;
+  }
+
+  /* Smooth scroll */
+  html { scroll-behavior: smooth; }
+
+  /* Selection */
+  ::selection { background: rgba(99, 102, 241, 0.4); color: #fff; }
+
+  /* Animations used in the orbital timeline */
+  @keyframes orbital-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  @keyframes orbital-ping {
+    75%, 100% { transform: scale(2); opacity: 0; }
+  }
+  .anim-pulse { animation: orbital-pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+  .anim-ping { animation: orbital-ping 2.2s cubic-bezier(0,0,0.2,1) infinite; }
+
+  /* Carousel mockup gradient halos */
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+    50% { transform: translateY(-10px) rotate(var(--rot, 0deg)); }
+  }
+  .drift-slow { animation: drift 8s ease-in-out infinite; }
+
+  /* Marquee for tech stack */
+  @keyframes marq {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .marq { animation: marq 40s linear infinite; }
+
+  /* Glow text accent */
+  .text-gradient {
+    background: linear-gradient(180deg, #ffffff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-glow {
+    color: #a5b4fc;
+    text-shadow: 0 0 36px rgba(129, 140, 248, 0.55);
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body class="relative">
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <defs>
+      <radialGradient id="bg" cx="50%" cy="40%" r="80%">
+        <stop offset="0%" stop-color="#1a1830"/>
+        <stop offset="100%" stop-color="#06060c"/>
+      </radialGradient>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#818cf8"/>
+        <stop offset="100%" stop-color="#4f46e5"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="200" fill="url(#bg)"/>
+    <circle cx="100" cy="100" r="22" fill="url(#g)"/>
+    <circle cx="100" cy="100" r="44" fill="none" stroke="#a5b4fc" stroke-opacity="0.4" stroke-width="1"/>
+    <circle cx="100" cy="100" r="64" fill="none" stroke="#a5b4fc" stroke-opacity="0.18" stroke-width="1"/>
+    <circle cx="144" cy="100" r="6" fill="#fff"/>
+    <circle cx="56"  cy="100" r="6" fill="#fff"/>
+    <circle cx="100" cy="56"  r="6" fill="#fff"/>
+    <circle cx="100" cy="144" r="6" fill="#fff"/>
+  </svg>
+</template>
+<div id="root" class="relative z-10"></div>
+
+<script type="text/babel" src="bwc-icons.jsx"></script>
+<script type="text/babel" src="bwc-orbital.jsx"></script>
+<script type="text/babel" src="bwc-shuffle.jsx"></script>
+<script type="text/babel" src="bwc-sections.jsx"></script>
+<script type="text/babel" src="bwc-app.jsx"></script>
+</body>
+</html>

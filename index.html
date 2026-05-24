@@ -1,0 +1,3892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContentCore — AI Carousel Studio & Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800;900&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,500;0,700;0,800;0,900;1,700;1,800;1,900&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Shared Brand Stylesheet -->
+    <link rel="stylesheet" href="shared.css">
+    
+    <!-- Third-Party Export Libraries -->
+    <script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+    
+    <style>
+        /* =====================================================
+           UNIFIED WORKSPACE STYLE
+           ===================================================== */
+        :root {
+            --app-bg: #08090c;
+            --sidebar-bg: #0d1117;
+            --panel-bg: #12161d;
+            --panel-bg-hover: #181d26;
+            --border-color: #21262d;
+            --border-color-hover: #30363d;
+            
+            --brand-purple: #6366f1;
+            --brand-purple-glow: rgba(99, 102, 241, 0.15);
+            --brand-green: #10b981;
+            --brand-green-glow: rgba(16, 185, 129, 0.15);
+            --brand-yellow: #f59e0b;
+            --brand-blue: #0ea5e9;
+            --brand-violet: #8b5cf6;
+            --brand-red: #ef4444;
+            
+            --text-main: #f0f3f8;
+            --text-secondary: #b1b8c2;
+            --text-muted: #6e7681;
+            --text-disabled: #484f58;
+            
+            --sidebar-width: 380px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Geist', -apple-system, sans-serif;
+            background: var(--app-bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Header ─── */
+        header.app-header {
+            height: 64px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+        }
+        
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-text {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--brand-purple);
+            letter-spacing: -0.5px;
+        }
+        .logo-text .b { color: var(--text-muted); }
+        
+        .logo-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-left: 1px solid var(--border-color);
+            padding-left: 12px;
+        }
+        
+        .title-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            justify-content: center;
+            max-width: 400px;
+            margin: 0 20px;
+        }
+        .title-input-wrap input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+            width: 100%;
+            text-align: center;
+            border-bottom: 1px dashed transparent;
+            padding: 4px 0;
+            transition: border-bottom-color 0.2s;
+        }
+        .title-input-wrap input:hover, .title-input-wrap input:focus {
+            border-bottom-color: var(--brand-purple);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-family: inherit;
+            transition: all 0.2s;
+            user-select: none;
+            color: var(--text-main);
+            background: none;
+        }
+        .btn-primary {
+            background: var(--brand-purple);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+        .btn-primary:hover {
+            background: #4f46e5;
+            box-shadow: 0 4px 25px rgba(99, 102, 241, 0.4);
+        }
+        .btn-ghost {
+            background: var(--panel-bg);
+            border-color: var(--border-color);
+        }
+        .btn-ghost:hover {
+            background: var(--panel-bg-hover);
+            border-color: var(--brand-purple);
+        }
+        .btn-active {
+            background: var(--brand-purple-glow);
+            border-color: var(--brand-purple);
+            color: var(--text-main);
+        }
+        
+        /* ─── Main Shell ─── */
+        .app-workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ─── Left Panel (Sidebar Settings) ─── */
+        .workspace-sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 90;
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: #0b0d12;
+            padding: 4px;
+            gap: 2px;
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .sidebar-tab:hover {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.03);
+        }
+        .sidebar-tab.active {
+            color: var(--brand-purple);
+            background: var(--panel-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .sidebar-content::-webkit-scrollbar { width: 4px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: var(--border-color-hover); }
+
+        .tab-section {
+            display: none;
+        }
+        .tab-section.active {
+            display: block;
+        }
+
+        /* Form Fields */
+        .form-group {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group.full {
+            grid-column: 1/-1;
+        }
+        .form-group label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--brand-purple);
+            background: var(--panel-bg-hover);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Style Selection Swatches */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .color-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 8px;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .color-card:hover {
+            border-color: var(--border-color-hover);
+            background: var(--panel-bg-hover);
+        }
+        .color-card.active {
+            border-color: var(--brand-purple);
+            background: var(--brand-purple-glow);
+        }
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .color-card span {
+            font-size: 10.5px;
+            font-weight: 500;
+        }
+
+        .font-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .font-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .font-card:hover {
+            border-color: var(--border-color-hover);
+            background: var(--panel-bg-hover);
+        }
+        .font-card.active {
+            border-color: var(--brand-purple);
+            background: var(--brand-purple-glow);
+        }
+        .font-sample {
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .font-info {
+            text-align: right;
+        }
+        .font-name {
+            font-size: 12px;
+            font-weight: 600;
+            display: block;
+        }
+        .font-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Settings Checkboxes */
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .setting-item {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        .setting-item:hover {
+            background: var(--panel-bg-hover);
+        }
+        .setting-item span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 32px;
+            height: 18px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: var(--border-color-hover);
+            border-radius: 18px;
+            transition: .2s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-main);
+            border-radius: 50%;
+            transition: .2s;
+        }
+        input:checked + .slider {
+            background-color: var(--brand-purple);
+        }
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+
+        /* Collapse Prompt Panels */
+        .prompt-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .prompt-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .prompt-head:hover {
+            background: var(--panel-bg-hover);
+        }
+        .prompt-tag {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+        .tag-p1 { background: rgba(139, 92, 246, 0.15); color: var(--brand-violet); }
+        .tag-p2 { background: rgba(16, 185, 129, 0.15); color: var(--brand-green); }
+        .tag-p3 { background: rgba(14, 165, 233, 0.15); color: var(--brand-blue); }
+        .tag-p4 { background: rgba(245, 158, 11, 0.15); color: var(--brand-yellow); }
+        .tag-p5 { background: rgba(99, 102, 241, 0.15); color: var(--brand-purple); }
+        .tag-p6 { background: rgba(239, 68, 68, 0.15); color: var(--brand-red); }
+        .prompt-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            flex: 1;
+            margin-left: 10px;
+            color: var(--text-main);
+        }
+        .prompt-chevron {
+            font-size: 10px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+        .prompt-chevron.open {
+            transform: rotate(180deg);
+        }
+        .prompt-body {
+            padding: 14px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+        .prompt-body.active {
+            display: block;
+        }
+        .prompt-textarea {
+            width: 100%;
+            background: #080a0e;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-family: 'Geist Mono', monospace;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .prompt-textarea:focus {
+            border-color: var(--brand-purple);
+        }
+        .prompt-extra {
+            margin-bottom: 10px;
+        }
+        .prompt-extra label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .prompt-extra input {
+            background: #080a0e;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: var(--text-main);
+            font-size: 12px;
+            outline: none;
+            width: 100%;
+        }
+        .prompt-extra input:focus {
+            border-color: var(--brand-purple);
+        }
+
+        /* ─── Center Visual Stage ─── */
+        .workspace-canvas {
+            flex: 1;
+            position: relative;
+            background: #090a0e;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Figma-style Grid bg */
+        .canvas-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M80 0H0v80' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .canvas-stage {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+            z-index: 2;
+            overflow: hidden; /* Prevent visual overflow */
+        }
+
+        /* Slide Frame wrapper */
+        .canvas-slide-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            width: 1080px;
+            height: 1350px;
+            transform-origin: center center;
+            flex-shrink: 0;
+            background: #0d1117;
+        }
+
+        .canvas-slide-wrapper .ig-slide {
+            transform: none !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Bottom dock below canvas */
+        .canvas-dock {
+            height: 80px;
+            background: var(--sidebar-bg);
+            border-top: 1px solid var(--border-color);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        .dock-left, .dock-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .dock-center {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        .nav-btn:hover {
+            border-color: var(--brand-purple);
+            color: var(--text-main);
+            background: var(--panel-bg-hover);
+        }
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color) !important;
+            background: var(--panel-bg) !important;
+        }
+
+        .nav-dots {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-disabled);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-dot:hover {
+            background: var(--text-muted);
+        }
+        .nav-dot.active {
+            background: var(--brand-purple);
+            width: 18px;
+            border-radius: 4px;
+        }
+
+        .nav-counter {
+            font-family: 'Geist Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+        .nav-counter .now {
+            color: var(--text-main);
+        }
+
+        .dock-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border-color);
+        }
+
+        /* ─── Storyboard View (Grid) ─── */
+        .storyboard-stage {
+            display: none;
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            background: #090a0e;
+            padding: 48px;
+            white-space: nowrap;
+            align-items: center;
+            gap: 32px;
+            z-index: 2;
+        }
+        .storyboard-stage::-webkit-scrollbar { height: 6px; }
+        .storyboard-stage::-webkit-scrollbar-thumb { background: var(--border-color-hover); border-radius: 3px; }
+
+        .storyboard-card-wrap {
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        .storyboard-card-wrap:hover {
+            transform: translateY(-4px);
+        }
+        
+        .storyboard-slide-frame {
+            width: 270px;
+            height: 337.5px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+            background: #0d1117;
+            position: relative;
+        }
+        .storyboard-slide-frame .ig-slide {
+            width: 1080px !important;
+            height: 1350px !important;
+            transform: scale(0.25) !important;
+            transform-origin: top left !important;
+        }
+        .storyboard-slide-frame::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            transition: background 0.2s;
+            cursor: pointer;
+            z-index: 20;
+        }
+        .storyboard-card-wrap:hover .storyboard-slide-frame::after {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .storyboard-card-wrap.selected .storyboard-slide-frame {
+            box-shadow: 0 0 0 2px var(--brand-purple), 0 20px 50px rgba(99, 102, 241, 0.25);
+        }
+
+        .storyboard-card-meta {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+        }
+        .storyboard-card-label {
+            font-size: 11px;
+            font-family: 'Geist Mono', monospace;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .storyboard-card-label .kind {
+            text-transform: uppercase;
+            color: var(--brand-purple);
+            margin-left: 6px;
+        }
+        .storyboard-card-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .storyboard-card-wrap:hover .storyboard-card-actions {
+            opacity: 1;
+        }
+        .sb-btn {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .sb-btn:hover {
+            background: var(--panel-bg-hover);
+            border-color: var(--brand-purple);
+            color: var(--text-main);
+        }
+        .sb-btn.danger:hover {
+            border-color: var(--brand-red);
+            color: var(--brand-red);
+        }
+
+        /* ─── Tools & Dashboard layouts (Tab 3: Agency Hub) ─── */
+        .hub-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        .hub-desc {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .hub-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .hub-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .hub-card-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--brand-purple);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .hub-card-body {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            background: #080a0e;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .hub-card-body em {
+            color: var(--brand-yellow);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        /* Checklist */
+        .wf-phase {
+            margin-bottom: 16px;
+        }
+        .wf-phase-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .wf-tag {
+            font-size: 8.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: var(--brand-purple-glow);
+            color: var(--brand-purple);
+        }
+        .wf-step {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            align-items: flex-start;
+            transition: opacity 0.2s;
+        }
+        .wf-step.done {
+            opacity: 0.45;
+        }
+        .wf-check {
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--border-color-hover);
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: transparent;
+            transition: all 0.15s;
+            margin-top: 1px;
+        }
+        .wf-check:hover {
+            border-color: var(--brand-purple);
+        }
+        .wf-check.checked {
+            background: var(--brand-green);
+            border-color: var(--brand-green);
+            color: #fff;
+        }
+        .wf-text {
+            flex: 1;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        .wf-note {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        
+        /* Tree Drive view */
+        .tree-tree {
+            font-family: 'Geist Mono', monospace;
+            font-size: 10.5px;
+            color: var(--text-muted);
+            line-height: 1.8;
+            background: #080a0e;
+            border-radius: 6px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Checklist Intake */
+        .intake-q {
+            display: flex;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .intake-q:last-child {
+            border-bottom: none;
+        }
+        .intake-num {
+            color: var(--brand-purple);
+            font-weight: 700;
+            font-family: 'Geist Mono', monospace;
+        }
+
+        /* Ideas Grid */
+        .idea-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .idea-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .idea-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .idea-num {
+            font-family: 'Geist Mono', monospace;
+            font-size: 9.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .idea-tag {
+            font-size: 8.5px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--brand-purple);
+        }
+        .idea-tag.reel-tag {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--brand-yellow);
+        }
+        .idea-hook {
+            font-size: 12.5px;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+        .idea-why {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* ─── Toast Alert ─── */
+        .app-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--brand-green);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
+        }
+        .app-toast.show {
+            transform: none;
+            opacity: 1;
+        }
+
+        .export-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border-color-hover);
+            color: var(--text-main);
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            animation: slideIn 0.25s var(--ease) forwards;
+        }
+        .export-toast .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--brand-purple-glow);
+            border-top-color: var(--brand-purple);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .export-toast .check {
+            display: none;
+            color: var(--brand-green);
+            font-weight: bold;
+        }
+        .export-toast.done .spinner { display: none; }
+        .export-toast.done .check { display: inline; }
+        .export-toast.done { border-color: var(--brand-green); }
+        .export-toast .sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 1px;
+            font-family: 'Geist Mono', monospace;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { transform: translateY(80px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Storyboard Grid state overrides */
+        /* Storyboard Grid state overrides */
+        .workspace-canvas.storyboard-active .canvas-stage { display: none; }
+        .workspace-canvas.storyboard-active .canvas-dock { display: none; }
+        .workspace-canvas.storyboard-active .storyboard-stage { display: flex; }
+
+        /* =====================================================
+           LIGHT MODE OVERRIDES
+           ===================================================== */
+        body.light-mode {
+            --app-bg: #f3f4f6;          /* Light gray background */
+            --sidebar-bg: #ffffff;      /* Pure white sidebar */
+            --panel-bg: #f9fafb;        /* Off-white panels */
+            --panel-bg-hover: #f3f4f6;  /* Soft gray hover */
+            --border-color: #e5e7eb;    /* Light gray borders */
+            --border-color-hover: #d1d5db;
+            
+            --brand-purple-glow: rgba(99, 102, 241, 0.08);
+            --brand-green-glow: rgba(16, 185, 129, 0.08);
+            
+            --text-main: #111827;       /* Dark gray text */
+            --text-secondary: #4b5563;  /* Medium gray text */
+            --text-muted: #9ca3af;      /* Muted text */
+            --text-disabled: #d1d5db;   /* Disabled text */
+        }
+
+        body.light-mode .sidebar-tabs {
+            background: #f3f4f6;
+        }
+
+        body.light-mode .sidebar-tab.active {
+            background: var(--panel-bg);
+            color: var(--brand-purple);
+        }
+
+        body.light-mode .prompt-textarea,
+        body.light-mode .tree-tree,
+        body.light-mode .hub-card-body {
+            background: #ffffff;
+            color: #1f2937;
+        }
+
+        body.light-mode .canvas-grid-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M80 0H0v80' fill='none' stroke='rgba(0,0,0,0.03)' stroke-width='1'/%3E%3C/svg%3E");
+        }
+
+        /* ─── Agency Workspace Layout Styles ─── */
+        .sidebar-tab-vertical {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .sidebar-tab-vertical:hover {
+            color: var(--text-main);
+            background: var(--panel-bg-hover);
+        }
+        .sidebar-tab-vertical.active {
+            color: var(--brand-purple);
+            background: var(--brand-purple-glow);
+            font-weight: 600;
+        }
+        body.light-mode .sidebar-tab-vertical.active {
+            background: var(--brand-purple-glow);
+            color: var(--brand-purple);
+        }
+
+        .agency-content-area {
+            flex: 1;
+            padding: 32px 40px;
+            overflow-y: auto;
+            background: var(--app-bg);
+            color: var(--text-main);
+            z-index: 10;
+        }
+        
+        .agency-page {
+            display: none;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        
+        .agency-page.active {
+            display: block;
+            animation: fadeIn 0.2s ease forwards;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        
+        .page-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Setup Card */
+        .setup-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .setup-card .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+        }
+        
+        .setup-card .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .setup-card .field.full {
+            grid-column: 1 / -1;
+        }
+        
+        .setup-card .field label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+        
+        .setup-card .field input,
+        .setup-card .field textarea,
+        .setup-card .field select {
+            background: var(--app-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-size: 13.5px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s, background-color 0.15s;
+            width: 100%;
+        }
+        
+        .setup-card .field input:focus,
+        .setup-card .field textarea:focus,
+        .setup-card .field select:focus {
+            border-color: var(--brand-purple);
+            background: var(--panel-bg-hover);
+        }
+        
+        .setup-card .field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .setup-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--brand-purple);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .setup-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: 6px;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        /* Collapsible Prompt Cards */
+        .prompt-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        
+        .prompt-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        
+        .prompt-head:hover {
+            background: var(--panel-bg-hover);
+        }
+        
+        .prompt-head-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge-purple { background: rgba(99, 102, 241, 0.15); color: var(--brand-purple); }
+        .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--brand-green); }
+        .badge-yellow { background: rgba(245, 158, 11, 0.15); color: var(--brand-yellow); }
+        .badge-blue { background: rgba(14, 165, 233, 0.15); color: var(--brand-blue); }
+        .badge-violet { background: rgba(139, 92, 246, 0.15); color: var(--brand-violet); }
+        
+        .prompt-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .chevron {
+            color: var(--text-muted);
+            font-size: 11px;
+            transition: transform 0.2s;
+        }
+        
+        .chevron.open {
+            transform: rotate(180deg);
+        }
+        
+        .prompt-card .prompt-body {
+            display: none;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .prompt-card .prompt-body.active {
+            display: block;
+        }
+        
+        .extra-field {
+            margin-bottom: 14px;
+        }
+        
+        .extra-field label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            display: block;
+            margin-bottom: 6px;
+        }
+        
+        .extra-field input {
+            background: var(--app-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s;
+            width: 100%;
+        }
+        
+        .extra-field input:focus {
+            border-color: var(--brand-purple);
+        }
+        
+        .prompt-textarea {
+            width: 100%;
+            background: var(--app-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            color: var(--text-secondary);
+            font-size: 12.5px;
+            font-family: var(--mono);
+            line-height: 1.75;
+            resize: vertical;
+            min-height: 160px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        
+        .prompt-textarea:focus {
+            border-color: var(--brand-purple);
+        }
+        
+        /* Workflow Styles */
+        .phase {
+            margin-bottom: 28px;
+        }
+        
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .phase-tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .tag-purple { background: rgba(99, 102, 241, 0.15); color: var(--brand-purple); }
+        .tag-green { background: rgba(16, 185, 129, 0.15); color: var(--brand-green); }
+        .tag-yellow { background: rgba(245, 158, 11, 0.15); color: var(--brand-yellow); }
+        .tag-violet { background: rgba(139, 92, 246, 0.15); color: var(--brand-violet); }
+        
+        .phase-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .step {
+            display: flex;
+            gap: 14px;
+            padding: 14px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            align-items: flex-start;
+            transition: opacity 0.2s;
+        }
+        
+        .step.done-step {
+            opacity: 0.45;
+        }
+        
+        .check {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color-hover);
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 2px;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: transparent;
+        }
+        
+        .check:hover {
+            border-color: var(--brand-purple);
+        }
+        
+        .check.checked {
+            background: var(--brand-green);
+            border-color: var(--brand-green);
+            color: #fff;
+        }
+        
+        .step-body {
+            flex: 1;
+        }
+        
+        .step-action {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .step-note {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            line-height: 1.45;
+        }
+        
+        .step-time {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--brand-purple);
+            background: var(--brand-purple-glow);
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            align-self: center;
+        }
+        
+        /* Scripts Styles */
+        .script-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .script-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--brand-purple);
+            margin-bottom: 12px;
+        }
+        
+        .script-text {
+            font-size: 13px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            background: var(--app-bg);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            white-space: pre-wrap;
+        }
+        
+        .script-text em {
+            color: var(--brand-yellow);
+            font-style: normal;
+            font-weight: 600;
+        }
+        
+        /* Intake Styles */
+        .intake-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .intake-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        
+        .intake-card-sub {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            margin-bottom: 18px;
+        }
+        
+        .question {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .question:last-of-type {
+            border-bottom: none;
+        }
+        
+        .qnum {
+            color: var(--brand-purple);
+            font-weight: 700;
+            min-width: 22px;
+            flex-shrink: 0;
+            font-family: var(--mono);
+        }
+        
+        .drive-tree {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 2.1;
+            background: var(--app-bg);
+            border-radius: 8px;
+            padding: 18px;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Ideas Grid Styles */
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .idea-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .idea-num {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-family: var(--mono);
+        }
+        
+        .idea-hook {
+            font-size: 13.5px;
+            font-weight: 600;
+            line-height: 1.5;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            flex: 1;
+        }
+        
+        .idea-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        
+        .idea-tag {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .tag-carousel { background: rgba(99, 102, 241, 0.15); color: var(--brand-purple); }
+        .tag-reel { background: rgba(245, 158, 11, 0.15); color: var(--brand-yellow); }
+        
+        .idea-why {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════════ HEADER ═══ -->
+    <header class="app-header">
+        <div class="logo-wrap">
+            <span class="logo-text"><span class="b">&lt;</span> BWC <span class="b">/&gt;</span></span>
+            <span class="logo-title" id="logo-title">Slide Studio</span>
+        </div>
+        
+        <div class="mode-switcher-wrap" style="display:flex; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:8px; padding:2px; gap:2px; margin-left: 20px;">
+            <button class="btn btn-ghost" id="btn-mode-studio" style="padding:6px 14px; font-size:12px; border:none; border-radius:6px; background:var(--brand-purple); box-shadow:0 2px 10px rgba(99,102,241,0.25); color:#fff; font-weight:600;">🎨 Slide Studio</button>
+            <button class="btn btn-ghost" id="btn-mode-agency" style="padding:6px 14px; font-size:12px; border:none; border-radius:6px; background:transparent;">📊 Agency Workspace</button>
+        </div>
+        
+        <div class="title-input-wrap">
+            <input type="text" id="title" placeholder="Untitled Carousel">
+        </div>
+        
+        <div class="header-actions">
+            <button class="btn btn-ghost" id="btn-toggle-theme">☀️ Light Mode</button>
+            <button class="btn btn-ghost" id="btn-storyboard">📋 Storyboard View</button>
+            <button class="btn btn-ghost" id="btn-copy-html">📄 Copy HTML</button>
+            <button class="btn btn-primary" id="btn-export">↓ Export Carousel ZIP</button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════ MAIN SHELL ═══ -->
+    <div class="app-workspace">
+        
+        <!-- ─── Left Sidebar Settings ─── -->
+        <!-- ─── Studio Mode Sidebar ─── -->
+        <aside class="workspace-sidebar" id="sidebar-studio">
+            <div class="sidebar-tabs">
+                <div class="sidebar-tab active" data-tab="inspector">📝 Edit Slide</div>
+                <div class="sidebar-tab" data-tab="styles">🎨 Styles</div>
+            </div>
+            
+            <div class="sidebar-content">
+                
+                <!-- Tab: Edit Slide (Inspector) -->
+                <div class="tab-section active" id="sec-inspector">
+                    
+                    <!-- Slide Content Editor -->
+                    <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: var(--brand-purple); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">📝 Slide Content</h4>
+                        <div id="sidebar-content-fields" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- Dynamically populated fields -->
+                        </div>
+                    </div>
+
+                    <!-- Active Slide Layout -->
+                    <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: var(--brand-purple); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; letter-spacing: 0.5px;">
+                            <span>🧩 Active Slide Layout</span>
+                            <span id="inspector-slide-index" style="color: var(--text-muted); font-family: var(--mono);">01 / 09</span>
+                        </h4>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Template</label>
+                                <select id="slide-kind">
+                                    <option value="hook">Hook</option>
+                                    <option value="text">Text</option>
+                                    <option value="subtext">Subtext</option>
+                                    <option value="code">Code</option>
+                                    <option value="ba">Before / After</option>
+                                    <option value="metric">Metric</option>
+                                    <option value="list">List</option>
+                                    <option value="cta">Call to Action</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Alignment</label>
+                                <select id="slide-align">
+                                    <option value="left">Left Align</option>
+                                    <option value="center">Center Align</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-list" style="margin-top: 6px;">
+                            <div class="setting-item" style="padding: 10px 14px;">
+                                <span>Glowing Halos</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="slide-glow">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Font Sizes Inspector -->
+                    <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: var(--brand-purple); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">📐 Font Resizing</h4>
+                        
+                        <div class="form-group">
+                            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+                                <label>Headline Size</label>
+                                <span id="val-headline-size" style="font-family:var(--mono);">100px</span>
+                            </div>
+                            <input type="range" id="slide-headline-size" min="40" max="150" step="2" value="100" style="width: 100%; margin-top: 6px; accent-color: var(--brand-purple);">
+                        </div>
+                        
+                        <div class="form-group">
+                            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+                                <label>Subtext Size</label>
+                                <span id="val-sub-size" style="font-family:var(--mono);">36px</span>
+                            </div>
+                            <input type="range" id="slide-sub-size" min="20" max="70" step="1" value="36" style="width: 100%; margin-top: 6px; accent-color: var(--brand-purple);">
+                        </div>
+
+                        <div class="form-group" id="group-tag-size">
+                            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+                                <label>Eyebrow Tag Size</label>
+                                <span id="val-tag-size" style="font-family:var(--mono);">20px</span>
+                            </div>
+                            <input type="range" id="slide-tag-size" min="14" max="40" step="1" value="20" style="width: 100%; margin-top: 6px; accent-color: var(--brand-purple);">
+                        </div>
+                    </div>
+
+                    <!-- Conditional Layout Swaps -->
+                    <div id="inspector-swaps" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 20px; display: none;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: var(--brand-purple); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">🔀 Layout Swaps</h4>
+                        <div class="settings-list">
+                            <div class="setting-item" id="item-ba-swap" style="display: none; padding: 10px 14px;">
+                                <span>Swap Before/After Columns</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="slide-ba-swap">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item" id="item-code-swap" style="display: none; padding: 10px 14px;">
+                                <span>Swap Code/Text Order</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="slide-code-swap">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Media Section (Image Upload & Controls) -->
+                    <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: var(--brand-purple); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">🖼️ Slide Image</h4>
+                        
+                        <!-- Dropzone / Upload box -->
+                        <div id="image-upload-zone" style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.1);">
+                            <div style="font-size: 24px; margin-bottom: 8px;">📤</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Click to upload image</div>
+                            <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">PNG, JPG, SVG, WebP</div>
+                            <input type="file" id="slide-image-file" accept="image/*" style="display: none;">
+                        </div>
+
+                        <!-- Image Customization controls -->
+                        <div id="image-settings-zone" style="display: none; flex-direction: column; gap: 14px;">
+                            <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                <img id="img-preview" src="" style="width: 50px; height: 50px; object-fit: contain; border-radius: 4px; background: #000;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="img-filename">image.png</div>
+                                    <button class="btn" style="padding: 4px 8px; font-size: 10px; color: var(--brand-red); margin-top: 4px; background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2);" id="btn-remove-image">Delete Image</button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+                                    <label>Image Width</label>
+                                    <span id="val-image-width" style="font-family:var(--mono);">60%</span>
+                                </div>
+                                <input type="range" id="slide-image-width" min="20" max="100" step="5" value="60" style="width: 100%; margin-top: 6px; accent-color: var(--brand-purple);">
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>Align</label>
+                                    <select id="slide-image-align">
+                                        <option value="left">Left</option>
+                                        <option value="center">Center</option>
+                                        <option value="right">Right</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Shadow</label>
+                                    <div class="setting-item" style="padding: 6px 12px; margin-top: 4px; border: 1px solid var(--border-color); border-radius: 6px; height: 38px;">
+                                        <span style="font-size:11px;">Enable</span>
+                                        <label class="switch">
+                                            <input type="checkbox" id="slide-image-border" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Extra Text Block Section -->
+                    <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: var(--brand-purple); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">📝 Extra Text Block</h4>
+                        
+                        <button class="btn btn-ghost" id="btn-add-extra-text" style="width: 100%; font-size: 11px;">＋ Add Extra Text Block</button>
+                        
+                        <div id="extra-text-settings-zone" style="display: none; flex-direction: column; gap: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Text Content</label>
+                                <textarea id="slide-extra-text" placeholder="Enter extra commentary or instructions..." style="min-height: 60px; font-size: 12px;"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+                                    <label>Text Size</label>
+                                    <span id="val-extra-text-size" style="font-family:var(--mono);">28px</span>
+                                </div>
+                                <input type="range" id="slide-extra-text-size" min="16" max="60" step="1" value="28" style="width: 100%; margin-top: 6px; accent-color: var(--brand-purple);">
+                            </div>
+                            
+                            <button class="btn" style="width: 100%; font-size: 11px; color: var(--brand-red); background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2);" id="btn-remove-extra-text">Remove Text Block</button>
+                        </div>
+                    </div>
+
+                    <!-- Single Slide Export Section -->
+                    <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: var(--brand-purple); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">💾 Export Active Slide</h4>
+                        <button class="btn btn-primary" id="btn-export-single-inspector" style="width: 100%; background: var(--brand-green); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);">↓ Download Slide PNG</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Styles -->
+                <div class="tab-section" id="sec-styles">
+                    <!-- Themes -->
+                    <div class="form-group">
+                        <label>Color Theme Palette</label>
+                        <div class="color-grid">
+                            <div class="color-card active" data-theme="default">
+                                <div class="color-dot" style="background: linear-gradient(135deg, #0d1117 0%, #6366f1 100%)"></div>
+                                <span>Dark Brand</span>
+                            </div>
+                            <div class="color-card" data-theme="midnight">
+                                <div class="color-dot" style="background: linear-gradient(135deg, #0c0b16 0%, #8b5cf6 100%)"></div>
+                                <span>Midnight</span>
+                            </div>
+                            <div class="color-card" data-theme="cyberpunk">
+                                <div class="color-dot" style="background: linear-gradient(135deg, #070a0e 0%, #06b6d4 100%)"></div>
+                                <span>Cyberpunk</span>
+                            </div>
+                            <div class="color-card" data-theme="crimson">
+                                <div class="color-dot" style="background: linear-gradient(135deg, #0f0a0a 0%, #ef4444 100%)"></div>
+                                <span>Crimson</span>
+                            </div>
+                            <div class="color-card" data-theme="cream">
+                                <div class="color-dot" style="background: linear-gradient(135deg, #f7f5ef 0%, #6b3a1f 100%)"></div>
+                                <span>Cream Stock</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Typography -->
+                    <div class="form-group">
+                        <label>Typography Preset</label>
+                        <div class="font-grid">
+                            <div class="font-card active" data-font="geist">
+                                <span class="font-sample" style="font-family: 'Geist', sans-serif;">Ag</span>
+                                <div class="font-info">
+                                    <span class="font-name">Geist</span>
+                                    <span class="font-desc">Tech-modern · dev native</span>
+                                </div>
+                            </div>
+                            <div class="font-card" data-font="modern">
+                                <span class="font-sample" style="font-family: 'Montserrat', sans-serif;">Ag</span>
+                                <div class="font-info">
+                                    <span class="font-name">Modern Montserrat</span>
+                                    <span class="font-desc">Inter + Montserrat</span>
+                                </div>
+                            </div>
+                            <div class="font-card" data-font="dynamic">
+                                <span class="font-sample" style="font-family: 'Bebas Neue', sans-serif;">AG</span>
+                                <div class="font-info">
+                                    <span class="font-name">Dynamic Bebas</span>
+                                    <span class="font-desc">Bebas Neue + Inter</span>
+                                </div>
+                            </div>
+                            <div class="font-card" data-font="editorial">
+                                <span class="font-sample" style="font-family: 'Playfair Display', serif; font-style: italic;">Ag</span>
+                                <div class="font-info">
+                                    <span class="font-name">Editorial Serif</span>
+                                    <span class="font-desc">Playfair Display + Inter</span>
+                                </div>
+                            </div>
+                            <div class="font-card" data-font="premium">
+                                <span class="font-sample" style="font-family: 'Space Grotesk', sans-serif;">Ag</span>
+                                <div class="font-info">
+                                    <span class="font-name">Premium Space</span>
+                                    <span class="font-desc">Space Grotesk + IBM Plex</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Brand details -->
+                    <div class="form-group">
+                        <label>Branding details</label>
+                        <div class="form-grid">
+                            <div class="form-group" style="margin-bottom:0">
+                                <label style="font-size:9px">Footer Handle</label>
+                                <input type="text" id="style-handle" value="@builtwithclaudai">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0">
+                                <label style="font-size:9px">Brand Mark</label>
+                                <input type="text" id="style-brand" value="BWC">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Options -->
+                    <div class="form-group">
+                        <label>Hide / Show Elements</label>
+                        <div class="settings-list">
+                            <div class="setting-item" data-toggle="hideProgress">
+                                <span>Top Progress Bar</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-progress" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item" data-toggle="hideLogo">
+                                <span>Brand Header Logo</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-logo" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item" data-toggle="hideGlow">
+                                <span>Corner Glowing Halos</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-glow" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item" data-toggle="hideFooter">
+                                <span>Footer Bar</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-footer" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ─── Center Visual Stage (Workspace Canvas) ─── -->
+        <main class="workspace-canvas" id="workspace-canvas">
+            <div class="canvas-grid-bg"></div>
+            
+            <!-- Edit Mode Stage -->
+            <div class="canvas-stage" id="canvas-stage">
+                <div class="canvas-slide-wrapper" id="slide-wrapper">
+                    <!-- Dynamic Slide HTML is loaded here -->
+                </div>
+            </div>
+
+            <!-- Storyboard Grid Stage -->
+            <div class="storyboard-stage" id="storyboard-stage">
+                <!-- All slides rendered side-by-side -->
+            </div>
+
+            <!-- Slide Navigation Dock -->
+            <div class="canvas-dock">
+                <div class="dock-left">
+                    <button class="btn btn-ghost" style="padding: 6px 12px; font-size:11px;" id="btn-add-slide">＋ Add Slide</button>
+                    <button class="btn btn-ghost" style="padding: 6px 12px; font-size:11px;" id="btn-duplicate">⎘ Duplicate</button>
+                    <button class="btn btn-ghost" style="padding: 6px 12px; font-size:11px; color: var(--brand-green);" id="btn-export-single">↓ Download PNG</button>
+                </div>
+                
+                <div class="dock-center">
+                    <button class="nav-btn" id="btn-prev" title="Previous Slide">←</button>
+                    <div class="nav-dots" id="nav-dots">
+                        <!-- Navigation dots are dynamically rendered -->
+                    </div>
+                    <div class="nav-counter" id="nav-counter">
+                        <span class="now">01</span> / <span class="total">09</span>
+                    </div>
+                    <button class="nav-btn" id="btn-next" title="Next Slide">→</button>
+                </div>
+                
+                <div class="dock-right">
+                    <button class="nav-btn" style="border-radius:6px; font-size:11px; width:auto; padding:0 10px;" id="btn-move-up" title="Move Slide Up">↑ Up</button>
+                    <button class="nav-btn" style="border-radius:6px; font-size:11px; width:auto; padding:0 10px;" id="btn-move-down" title="Move Slide Down">↓ Down</button>
+                    <div class="dock-divider"></div>
+                    <button class="nav-btn" style="border-radius:6px; font-size:11px; width:auto; padding:0 10px; color:var(--brand-red);" id="btn-delete" title="Delete Slide">× Delete</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- ─── Agency Mode Sidebar ─── -->
+        <aside class="workspace-sidebar" id="sidebar-agency" style="display: none; background: var(--sidebar-bg); border-right: 1px solid var(--border-color); flex-direction: column;">
+            <div class="logo" style="padding: 20px 18px; border-bottom: 1px solid var(--border-color);">
+                <div class="logo-name" style="font-size:14px; font-weight:700; color:var(--text-main); letter-spacing:-0.3px;">ContentCore Studio</div>
+                <div class="logo-sub" style="font-size:11px; color:var(--text-muted); margin-top:3px;">AI Prompt Dashboard</div>
+            </div>
+            
+            <div class="nav-group" style="padding: 16px 18px 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase;">Workspace</div>
+            
+            <div class="sidebar-tabs" style="display: flex; flex-direction: column; background: transparent; border: none; padding: 6px 12px; gap: 4px; border-bottom: none;">
+                <div class="sidebar-tab-vertical active" data-tab="writer">⚡ AI Writer</div>
+                <div class="sidebar-tab-vertical" data-tab="workflow">📋 Workflow</div>
+                <div class="sidebar-tab-vertical" data-tab="scripts">💬 Scripts</div>
+                <div class="sidebar-tab-vertical" data-tab="intake">📝 Client Intake</div>
+                <div class="sidebar-tab-vertical" data-tab="ideas">💡 Content Ideas</div>
+            </div>
+            
+            <div class="sidebar-footer" style="margin-top:auto; padding:16px; border-top:1px solid var(--border-color); font-size:11px; color:var(--text-muted);">Cost to run: <span style="color:var(--brand-green); font-weight:700;">$13/mo</span></div>
+        </aside>
+
+        <!-- ─── Agency Mode Content Area ─── -->
+        <main class="agency-content-area" id="agency-content-area" style="display: none;">
+            
+            <!-- Page: AI Writer -->
+            <div class="agency-page active" id="page-writer">
+                <div class="page-title">⚡ AI Writer & Client Setup</div>
+                <div class="page-desc">Define client brief variables once. Collapsible Claude prompts update instantly. Click to copy or click to generate slides directly.</div>
+                
+                <!-- Setup Form -->
+                <div class="setup-card">
+                    <div class="setup-title">🎯 Client Setup <span class="setup-hint">— variables sync with slide studio</span></div>
+                    <div class="grid">
+                        <div class="field">
+                            <label>Company Name</label>
+                            <input type="text" id="c_company" placeholder="e.g. TechViz" value="TechViz" oninput="regen()">
+                        </div>
+                        <div class="field">
+                            <label>Founder Name</label>
+                            <input type="text" id="c_founder" placeholder="e.g. Alex Chen" value="Alex Chen" oninput="regen()">
+                        </div>
+                        <div class="field full">
+                            <label>Product Description (1-2 sentences)</label>
+                            <textarea id="c_product" placeholder="e.g. An automated analytics dashboard for Shopify store owners" oninput="regen()">A no-code metrics dashboard that helps e-commerce stores visualize ad spend.</textarea>
+                        </div>
+                        <div class="field full">
+                            <label>Target ICP (title, size, problem)</label>
+                            <input type="text" id="c_icp" placeholder="e.g. Shopify owners doing $10k/mo" value="Shopify store owners doing $10k-$100k/mo" oninput="regen()">
+                        </div>
+                        <div class="field full">
+                            <label>Top 3 Pain Points</label>
+                            <input type="text" id="c_pain" placeholder="e.g. wasted ad spend, raw tables" value="wasted ad budgets, raw tables, slow loading" oninput="regen()">
+                        </div>
+                        <div class="grid" style="grid-column: 1/-1;">
+                            <div class="field">
+                                <label>Brand Tone</label>
+                                <input type="text" id="c_tone" placeholder="e.g. direct, data-driven" value="direct, data-driven" oninput="regen()">
+                            </div>
+                            <div class="field">
+                                <label>Platform</label>
+                                <select id="c_platform" onchange="regen()">
+                                    <option>Instagram + LinkedIn</option>
+                                    <option>Instagram only</option>
+                                    <option>LinkedIn only</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prompts Collapsible Panel -->
+                <h4 style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 14px; letter-spacing: 0.5px;">📋 Prompt Generator</h4>
+                
+                <!-- P1 -->
+                <div class="prompt-card">
+                    <div class="prompt-head" onclick="togglePrompt('p1')">
+                        <div class="prompt-head-left">
+                            <span class="badge badge-purple">Step 1</span>
+                            <span class="prompt-title">Master Client Brief</span>
+                        </div>
+                        <span class="chevron open" id="chev-p1">▼</span>
+                    </div>
+                    <div class="prompt-body active" id="body-p1">
+                        <textarea class="prompt-textarea" id="p1" rows="7" readonly></textarea>
+                        <button class="btn btn-ghost" style="width: 100%; margin-top: 10px;" onclick="copyTextFromId('p1', this)">📋 Copy Brief Prompt</button>
+                    </div>
+                </div>
+
+                <!-- P2 -->
+                <div class="prompt-card">
+                    <div class="prompt-head" onclick="togglePrompt('p2')">
+                        <div class="prompt-head-left">
+                            <span class="badge badge-green">Step 2</span>
+                            <span class="prompt-title">Carousel Generator (10 Slides)</span>
+                        </div>
+                        <span class="chevron open" id="chev-p2">▼</span>
+                    </div>
+                    <div class="prompt-body active" id="body-p2">
+                        <div class="extra-field">
+                            <label>Carousel Topic</label>
+                            <input type="text" id="c_carousel_topic" value="Why most Shopify stores waste 40% of their ad spend" oninput="regen()">
+                        </div>
+                        <textarea class="prompt-textarea" id="p2" rows="7" readonly></textarea>
+                        <button class="btn btn-ghost" style="width: 100%; margin-top: 10px; margin-bottom: 8px;" onclick="copyTextFromId('p2', this)">📋 Copy Carousel Prompt</button>
+                        <button class="btn btn-primary" id="btn-ai-generate" style="width: 100%; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">✦ Generate Slides directly</button>
+                    </div>
+                </div>
+
+                <!-- P3 -->
+                <div class="prompt-card">
+                    <div class="prompt-head" onclick="togglePrompt('p3')">
+                        <div class="prompt-head-left">
+                            <span class="badge badge-green">Caption</span>
+                            <span class="prompt-title">Caption & Hashtags</span>
+                        </div>
+                        <span class="chevron" id="chev-p3">▼</span>
+                    </div>
+                    <div class="prompt-body" id="body-p3">
+                        <textarea class="prompt-textarea" id="p3" rows="6" readonly></textarea>
+                        <button class="btn btn-ghost" style="width: 100%; margin-top: 10px;" onclick="copyTextFromId('p3', this)">📋 Copy Caption Prompt</button>
+                    </div>
+                </div>
+
+                <!-- P4 -->
+                <div class="prompt-card">
+                    <div class="prompt-head" onclick="togglePrompt('p4')">
+                        <div class="prompt-head-left">
+                            <span class="badge badge-yellow">Reel Script</span>
+                            <span class="prompt-title">Reel Script (30-45 sec)</span>
+                        </div>
+                        <span class="chevron" id="chev-p4">▼</span>
+                    </div>
+                    <div class="prompt-body" id="body-p4">
+                        <div class="extra-field">
+                            <label>Reel Topic</label>
+                            <input type="text" id="c_reel_topic" value="Before/after: what we changed to 3x their reach" oninput="regen()">
+                        </div>
+                        <textarea class="prompt-textarea" id="p4" rows="6" readonly></textarea>
+                        <button class="btn btn-ghost" style="width: 100%; margin-top: 10px;" onclick="copyTextFromId('p4', this)">📋 Copy Reel Prompt</button>
+                    </div>
+                </div>
+
+                <!-- P5 -->
+                <div class="prompt-card">
+                    <div class="prompt-head" onclick="togglePrompt('p5')">
+                        <div class="prompt-head-left">
+                            <span class="badge badge-blue">LinkedIn</span>
+                            <span class="prompt-title">Thought Leadership Post</span>
+                        </div>
+                        <span class="chevron" id="chev-p5">▼</span>
+                    </div>
+                    <div class="prompt-body" id="body-p5">
+                        <div class="extra-field">
+                            <label>LinkedIn Topic</label>
+                            <input type="text" id="c_li_topic" value="Why your SaaS startup is invisible online (and the 30-day fix)" oninput="regen()">
+                        </div>
+                        <textarea class="prompt-textarea" id="p5" rows="6" readonly></textarea>
+                        <button class="btn btn-ghost" style="width: 100%; margin-top: 10px;" onclick="copyTextFromId('p5', this)">📋 Copy LinkedIn Prompt</button>
+                    </div>
+                </div>
+
+                <!-- P6 -->
+                <div class="prompt-card">
+                    <div class="prompt-head" onclick="togglePrompt('p6')">
+                        <div class="prompt-head-left">
+                            <span class="badge badge-violet">Calendar</span>
+                            <span class="prompt-title">30-Day Monthly Calendar</span>
+                        </div>
+                        <span class="chevron" id="chev-p6">▼</span>
+                    </div>
+                    <div class="prompt-body" id="body-p6">
+                        <textarea class="prompt-textarea" id="p6" rows="6" readonly></textarea>
+                        <button class="btn btn-ghost" style="width: 100%; margin-top: 10px;" onclick="copyTextFromId('p6', this)">📋 Copy Calendar Prompt</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Workflow -->
+            <div class="agency-page" id="page-workflow">
+                <div class="page-title">📋 Production Workflow</div>
+                <div class="page-desc">Repeatable checklists to manage and scale your B2B content agency.</div>
+                
+                <div class="phase">
+                    <div class="phase-header">
+                        <span class="phase-tag tag-purple">Week 1</span>
+                        <span class="phase-name">Build Your Foundation</span>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Build 1 sample carousel using TechViz (or mock product)</div>
+                            <div class="step-note">Use AI writer prompts → design in Slide Studio → export ZIP portfolio piece.</div>
+                        </div>
+                        <div class="step-time">1–2 hrs</div>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Set up LinkedIn outreach scripts</div>
+                            <div class="step-note">Copy DM templates, personalize hooks, and target SaaS profiles.</div>
+                        </div>
+                        <div class="step-time">30 min</div>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Build lead list of 50+ SaaS founders</div>
+                            <div class="step-note">Filter CEO/Founder, 2-30 employee range, B2B SaaS on LinkedIn/ProductHunt.</div>
+                        </div>
+                        <div class="step-time">2 hrs</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-header">
+                        <span class="phase-tag tag-green">Week 2</span>
+                        <span class="phase-name">Outreach & Free Mockups</span>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Send 10 cold DMs per day on LinkedIn</div>
+                            <div class="step-note">Personalize openings, mention recent launch or updates, keep DMs direct.</div>
+                        </div>
+                        <div class="step-time">30 min/day</div>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Offer FREE custom mockup to interested founders</div>
+                            <div class="step-note">Build a custom slide deck matching their branding immediately.</div>
+                        </div>
+                        <div class="step-time">1 hr/lead</div>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Post personal content on social channels</div>
+                            <div class="step-note">Use ideas panel hooks to share prompts, templates, and build outbound.</div>
+                        </div>
+                        <div class="step-time">30 min/day</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-header">
+                        <span class="phase-tag tag-yellow">Week 3–4</span>
+                        <span class="phase-name">Close Trial & Monthly Delivery</span>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Close first client at $500 trial rate</div>
+                            <div class="step-note">Deliver mockups, explain workflow speed, invoice via Stripe.</div>
+                        </div>
+                        <div class="step-time">—</div>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Send onboarding forms & organize Drive folder</div>
+                            <div class="step-note">Configure questionnaire, setup month folders, and start calendar.</div>
+                        </div>
+                        <div class="step-time">30 min</div>
+                    </div>
+                    <div class="step">
+                        <div class="check" onclick="chk(this)"></div>
+                        <div class="step-body">
+                            <div class="step-action">Produce first batch of carousels</div>
+                            <div class="step-note">Sync values, generate copies in Claude, design slides, and deliver.</div>
+                        </div>
+                        <div class="step-time">3-4 hrs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Scripts -->
+            <div class="agency-page" id="page-scripts">
+                <div class="page-title">💬 Outreach Scripts</div>
+                <div class="page-desc">Copy-paste cold outreach, follow-ups, closures, and upsell scripts.</div>
+                
+                <div class="script-card">
+                    <div class="script-label">Cold LinkedIn Message</div>
+                    <div class="script-text" id="ws-s1">Hey [Name], noticed [Company] just launched — congrats. I help SaaS founders like you stay consistently visible on Instagram/LinkedIn with AI-generated carousels and reels. I do all the work, you just approve and post. Want me to send a free sample carousel for [Company]?</div>
+                    <div class="actions" style="margin-top:12px">
+                        <button class="btn btn-primary" onclick="copyTextFromId('ws-s1', this)">📋 Copy Script</button>
+                    </div>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-label">Follow-Up Script (After 3 days)</div>
+                    <div class="script-text" id="ws-s2">Hey [Name] — just circling back. Happy to put together a free sample carousel for [Company] so you can see exactly what it looks like before committing to anything. No pitch, just want to show you the quality.</div>
+                    <div class="actions" style="margin-top:12px">
+                        <button class="btn btn-primary" onclick="copyTextFromId('ws-s2', this)">📋 Copy Script</button>
+                    </div>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-label">Trial Close Pitch</div>
+                    <div class="script-text" id="ws-s3">Here's what I'd suggest: let's do a trial month at $500 so you can see the quality with zero risk. If you love it, we move to $1,200/mo going forward. If not, no hard feelings. Sound fair?</div>
+                    <div class="actions" style="margin-top:12px">
+                        <button class="btn btn-primary" onclick="copyTextFromId('ws-s3', this)">📋 Copy Script</button>
+                    </div>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-label">Reels Upsell Offer</div>
+                    <div class="script-text" id="ws-s4">Hey [Name] — the carousels have been performing really well. I wanted to bring up something I think would take [Company]'s reach to another level. I've started adding short Reels to a couple of other clients and the difference in reach is significant. I could add 2–4 Reels to your monthly package for +$800/mo. Want me to show you a sample first?</div>
+                    <div class="actions" style="margin-top:12px">
+                        <button class="btn btn-primary" onclick="copyTextFromId('ws-s4', this)">📋 Copy Script</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Client Intake -->
+            <div class="agency-page" id="page-intake">
+                <div class="page-title">📝 Client Intake & Onboarding Templates</div>
+                <div class="page-desc">Questionnaires to send new clients and structure templates for your cloud storage.</div>
+                
+                <div class="intake-card">
+                    <div class="intake-card-title">Client Onboarding Questionnaire</div>
+                    <div class="intake-card-sub">Copy this form to share with a client during onboarding.</div>
+                    
+                    <div class="question"><span class="qnum">1.</span><span>What is your company name and what does your product do?</span></div>
+                    <div class="question"><span class="qnum">2.</span><span>Who is your ideal customer (ICP, company size, problems)?</span></div>
+                    <div class="question"><span class="qnum">3.</span><span>What are the top 3 pain points your product solves?</span></div>
+                    <div class="question"><span class="qnum">4.</span><span>How would you describe your brand tone (e.g. bold, professional)?</span></div>
+                    <div class="question"><span class="qnum">5.</span><span>What makes you different from your competitors?</span></div>
+                    <div class="question"><span class="qnum">6.</span><span>Do you have any social accounts or brand styles you admire? Share links.</span></div>
+                    
+                    <div class="actions" style="margin-top:16px">
+                        <button class="btn btn-primary" onclick="copyIntakeFormQuestions()">📋 Copy Form Questions</button>
+                    </div>
+                </div>
+
+                <div class="intake-card">
+                    <div class="intake-card-title">Google Drive Folder Structure</div>
+                    <div class="intake-card-sub">Duplicate this structure for clean folder organization.</div>
+                    <div class="drive-tree">
+📁 [Client Name] — ContentCore<br>
+&nbsp;&nbsp;📁 Month 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;📁 Week 1 — Publish Days 1–14<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📄 Captions + Hashtags.docx<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;🖼️ Carousel_01_[Topic].png (10 slides)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;📁 Week 2 — Publish Days 15–30<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📄 Captions + Hashtags.docx<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;🖼️ Carousel_05 → Carousel_08<br>
+&nbsp;&nbsp;&nbsp;&nbsp;📄 Content Calendar — Month 1.docx
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Content Ideas -->
+            <div class="agency-page" id="page-ideas">
+                <div class="page-title">💡 Social Content Ideas</div>
+                <div class="page-desc">Outbound topic ideas to build your own personal brand on LinkedIn/Twitter.</div>
+                
+                <div class="ideas-grid">
+                    <div class="idea-card">
+                        <div class="idea-num">Idea 01</div>
+                        <div class="idea-hook">"I made 10 Instagram carousels for a SaaS startup in 2 hours using AI — here's exactly how"</div>
+                        <div class="idea-meta"><span class="idea-tag tag-carousel">Carousel</span></div>
+                        <div class="idea-why">Builds credibility and shows product/process capabilities to prospective clients.</div>
+                    </div>
+
+                    <div class="idea-card">
+                        <div class="idea-num">Idea 02</div>
+                        <div class="idea-hook">"Why SaaS founders are terrible at social media (and the 1 fix that changes everything)"</div>
+                        <div class="idea-meta"><span class="idea-tag tag-carousel">Carousel</span></div>
+                        <div class="idea-why">Calls out target clients' mistakes directly. Attracts founders via shared validation.</div>
+                    </div>
+
+                    <div class="idea-card">
+                        <div class="idea-num">Idea 03</div>
+                        <div class="idea-hook">"How a CS student is building a $6K/mo content agency without being a designer"</div>
+                        <div class="idea-meta"><span class="idea-tag tag-reel">Reel</span></div>
+                        <div class="idea-why">Personal narrative. Highly relatable and builds personal brand reach.</div>
+                    </div>
+
+                    <div class="idea-card">
+                        <div class="idea-num">Idea 04</div>
+                        <div class="idea-hook">"The exact Claude prompt I use to turn any SaaS landing page into 30 days of content"</div>
+                        <div class="idea-meta"><span class="idea-tag tag-carousel">Carousel</span></div>
+                        <div class="idea-why">Direct value post. Boosts save and share rates in social algorithms.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ─── Toast alert elements ─── -->
+    <div class="app-toast" id="toast">✓ Copied to clipboard</div>
+
+    <!-- ═══════════════════════════════════════════ APPLICATION LOGIC ═══════ -->
+    <script src="shared.js"></script>
+    <script>
+        // ----- Application State -----
+        const appState = {
+            deck: JSON.parse(JSON.stringify(DEFAULT_DECK)),
+            idx: 0,
+            fontPreset: 'geist',
+            theme: 'default',
+            hideProgress: false,
+            hideLogo: false,
+            hideGlow: false,
+            hideFooter: false,
+            viewMode: 'edit', // 'edit' or 'storyboard'
+            mode: 'studio'    // 'studio' or 'agency'
+        };
+
+        // ----- Constants -----
+        const FONT_CLASSES = ['preset-modern', 'preset-dynamic', 'preset-editorial', 'preset-premium'];
+        const THEME_CLASSES = ['theme-midnight', 'theme-cyberpunk', 'theme-crimson', 'theme-cream'];
+
+        // ----- DOM Elements -----
+        const $ = sel => document.querySelector(sel);
+        const slideWrapper = $('#slide-wrapper');
+        const storyboardStage = $('#storyboard-stage');
+        const workspaceCanvas = $('#workspace-canvas');
+        const navDotsContainer = $('#nav-dots');
+        const navCounterNow = $('#nav-counter .now');
+        const navCounterTotal = $('#nav-counter .total');
+        const titleInput = $('#title');
+
+        // ----- Init & Event Listeners -----
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup title
+            titleInput.value = appState.deck.title;
+            titleInput.addEventListener('input', e => appState.deck.title = e.target.value);
+
+            // Studio Sidebar Tab click listeners
+            document.querySelectorAll('#sidebar-studio .sidebar-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('#sidebar-studio .sidebar-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#sidebar-studio .tab-section').forEach(s => s.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    $(`#sec-${tab.dataset.tab}`).classList.add('active');
+                });
+            });
+
+            // Agency Sidebar Tab click listeners
+            document.querySelectorAll('#sidebar-agency .sidebar-tab-vertical').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('#sidebar-agency .sidebar-tab-vertical').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.agency-page').forEach(p => p.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    $(`#page-${tab.dataset.tab}`).classList.add('active');
+                });
+            });
+
+            // Theme Selection Swatches
+            document.querySelectorAll('.color-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.color-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    appState.theme = card.dataset.theme;
+                    applyThemeStyle();
+                    renderActiveSlide();
+                });
+            });
+
+            // Font Preset Selection
+            document.querySelectorAll('.font-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.font-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    appState.fontPreset = card.dataset.font;
+                    applyFontStyle();
+                    renderActiveSlide();
+                });
+            });
+
+            // Style Checkboxes (Sliders)
+            document.getElementById('toggle-progress').addEventListener('change', e => {
+                appState.hideProgress = !e.target.checked;
+                renderActiveSlide();
+            });
+            document.getElementById('toggle-logo').addEventListener('change', e => {
+                appState.hideLogo = !e.target.checked;
+                renderActiveSlide();
+            });
+            document.getElementById('toggle-glow').addEventListener('change', e => {
+                appState.hideGlow = !e.target.checked;
+                renderActiveSlide();
+            });
+            document.getElementById('toggle-footer').addEventListener('change', e => {
+                appState.hideFooter = !e.target.checked;
+                renderActiveSlide();
+            });
+
+            // Custom Brand & Handle details
+            document.getElementById('style-handle').addEventListener('input', e => {
+                appState.deck.handle = e.target.value;
+                renderActiveSlide();
+            });
+            document.getElementById('style-brand').addEventListener('input', e => {
+                appState.deck.brand = e.target.value;
+                renderActiveSlide();
+            });
+
+            // Slide Navigation Controls
+            $('#btn-prev').addEventListener('click', () => selectSlide(appState.idx - 1));
+            $('#btn-next').addEventListener('click', () => selectSlide(appState.idx + 1));
+            
+            // Slide Modification Actions
+            $('#btn-add-slide').addEventListener('click', () => {
+                addSlideAt(appState.idx);
+            });
+            $('#btn-duplicate').addEventListener('click', () => {
+                duplicateSlideAt(appState.idx);
+            });
+            $('#btn-move-up').addEventListener('click', () => {
+                moveSlideAt(appState.idx, appState.idx - 1);
+            });
+            $('#btn-move-down').addEventListener('click', () => {
+                moveSlideAt(appState.idx, appState.idx + 1);
+            });
+            $('#btn-delete').addEventListener('click', () => {
+                deleteSlideAt(appState.idx);
+            });
+
+            // Theme toggle listener
+            const btnTheme = $('#btn-toggle-theme');
+            btnTheme.addEventListener('click', () => {
+                const isLight = document.body.classList.toggle('light-mode');
+                if (isLight) {
+                    btnTheme.innerHTML = '🌙 Dark Mode';
+                    showToast('✓ Switched to Light Mode');
+                } else {
+                    btnTheme.innerHTML = '☀️ Light Mode';
+                    showToast('✓ Switched to Dark Mode');
+                }
+            });
+
+            // Workspace view mode toggle listener
+            const btnStudio = $('#btn-mode-studio');
+            const btnAgency = $('#btn-mode-agency');
+            const sidebarStudio = $('#sidebar-studio');
+            const sidebarAgency = $('#sidebar-agency');
+            const canvasStage = $('#workspace-canvas');
+            const agencyArea = $('#agency-content-area');
+            const headerTitle = $('#logo-title');
+
+            btnStudio.addEventListener('click', () => {
+                appState.mode = 'studio';
+                btnStudio.style.background = 'var(--brand-purple)';
+                btnStudio.style.boxShadow = '0 2px 10px rgba(99,102,241,0.25)';
+                btnStudio.style.color = '#fff';
+                btnStudio.style.fontWeight = '600';
+                
+                btnAgency.style.background = 'transparent';
+                btnAgency.style.boxShadow = 'none';
+                btnAgency.style.color = 'var(--text-secondary)';
+                btnAgency.style.fontWeight = '500';
+                
+                sidebarStudio.style.display = 'flex';
+                canvasStage.style.display = 'flex';
+                sidebarAgency.style.display = 'none';
+                agencyArea.style.display = 'none';
+                
+                if (headerTitle) headerTitle.textContent = 'Slide Studio';
+                $('#btn-storyboard').style.display = 'inline-flex';
+                
+                renderActiveSlide();
+                scaleSlidePreview();
+            });
+
+            btnAgency.addEventListener('click', () => {
+                appState.mode = 'agency';
+                btnAgency.style.background = 'var(--brand-purple)';
+                btnAgency.style.boxShadow = '0 2px 10px rgba(99,102,241,0.25)';
+                btnAgency.style.color = '#fff';
+                btnAgency.style.fontWeight = '600';
+                
+                btnStudio.style.background = 'transparent';
+                btnStudio.style.boxShadow = 'none';
+                btnStudio.style.color = 'var(--text-secondary)';
+                btnStudio.style.fontWeight = '500';
+                
+                sidebarStudio.style.display = 'none';
+                canvasStage.style.display = 'none';
+                sidebarAgency.style.display = 'flex';
+                agencyArea.style.display = 'block';
+                
+                if (headerTitle) headerTitle.textContent = 'Agency Workspace';
+                $('#btn-storyboard').style.display = 'none';
+            });
+
+            // View Mode Toggles
+            $('#btn-storyboard').addEventListener('click', () => {
+                if (appState.viewMode === 'edit') {
+                    appState.viewMode = 'storyboard';
+                    $('#btn-storyboard').textContent = '👁️ Single Edit View';
+                    $('#btn-storyboard').classList.add('btn-active');
+                    workspaceCanvas.classList.add('storyboard-active');
+                    renderStoryboard();
+                } else {
+                    appState.viewMode = 'edit';
+                    $('#btn-storyboard').textContent = '📋 Storyboard View';
+                    $('#btn-storyboard').classList.remove('btn-active');
+                    workspaceCanvas.classList.remove('storyboard-active');
+                    renderActiveSlide();
+                }
+            });
+
+            // Direct Prompts Slide Generation
+            $('#btn-ai-generate').addEventListener('click', async () => {
+                const prompt = $('#p2').value.trim();
+                const aiBtn = $('#btn-ai-generate');
+                
+                aiBtn.disabled = true;
+                aiBtn.textContent = '✦ Generating...';
+                
+                try {
+                    const result = await aiGenerateSlides(prompt);
+                    if (result && Array.isArray(result.slides) && result.slides.length) {
+                        appState.deck = {
+                            title: result.title || appState.deck.title,
+                            handle: appState.deck.handle || '@builtwithclaudai',
+                            brand: appState.deck.brand || 'BWC',
+                            slides: result.slides
+                        };
+                        appState.idx = 0;
+                        titleInput.value = appState.deck.title;
+                        showToast('✓ Slides generated successfully!');
+                        renderActiveSlide();
+                    } else {
+                        throw new Error('Invalid JSON format returned');
+                    }
+                } catch (err) {
+                    console.error("Slide generation error: ", err);
+                    showToast('⚠ Generation failed - fell back to template');
+                } finally {
+                    aiBtn.disabled = false;
+                    aiBtn.textContent = '✦ Generate Slides directly';
+                }
+            });
+
+            // Export Zip PNGs
+            $('#btn-export').addEventListener('click', async () => {
+                commitActiveEdits();
+                
+                const toast = document.createElement('div');
+                toast.className = 'export-toast';
+                toast.innerHTML = `
+                    <div class="spinner"></div>
+                    <span class="check">✓</span>
+                    <div class="txt">Rendering ZIP...<div class="sub" id="exp-prog">0 / ${appState.deck.slides.length}</div></div>
+                `;
+                document.body.appendChild(toast);
+                
+                const meta = {
+                    brand: appState.deck.brand,
+                    handle: appState.deck.handle,
+                    theme: appState.theme,
+                    hideProgress: appState.hideProgress,
+                    hideGlow: appState.hideGlow,
+                    hideLogo: appState.hideLogo,
+                    hideFooter: appState.hideFooter
+                };
+                
+                try {
+                    await exportSlidesAsPNG(appState.deck.slides, meta, (done, total) => {
+                        document.getElementById('exp-prog').textContent = `${done} / ${total}`;
+                    });
+                    
+                    toast.classList.add('done');
+                    toast.querySelector('.txt').firstChild.textContent = 'ZIP download initiated!';
+                    toast.querySelector('#exp-prog').textContent = `${appState.deck.slides.length} slides · 1080×1350`;
+                    setTimeout(() => toast.remove(), 3000);
+                } catch (err) {
+                    console.error("ZIP Export Error: ", err);
+                    toast.querySelector('.txt').firstChild.textContent = 'ZIP Export Failed';
+                    setTimeout(() => toast.remove(), 3000);
+                }
+            });
+
+            // Copy HTML Document
+            $('#btn-copy-html').addEventListener('click', () => {
+                commitActiveEdits();
+                const htmlStr = generateStandaloneHTML();
+                navigator.clipboard.writeText(htmlStr).then(() => {
+                    showToast('✓ STANDALONE HTML copied to clipboard');
+                });
+            });
+
+            // Slide Inspector Controls Event Listeners
+            $('#slide-kind').addEventListener('change', e => {
+                commitActiveEdits();
+                const s = appState.deck.slides[appState.idx];
+                s.kind = e.target.value;
+                if (s.kind === 'code' && s.code === undefined) {
+                    s.code = '// Enter your code/prompt here';
+                }
+                if (s.kind === 'ba' && !s.ba) {
+                    s.ba = { before: 'Before content', after: 'After content' };
+                }
+                if (s.kind === 'list' && !s.list) {
+                    s.list = ['Item 1', 'Item 2', 'Item 3'];
+                }
+                if (s.kind === 'metric' && !s.metric) {
+                    s.metric = '10x';
+                }
+                if (s.kind === 'cta' && !s.cta) {
+                    s.cta = 'Get started';
+                }
+                if (s.kind === 'subtext' && s.sub === undefined) {
+                    s.sub = 'Write your subtext content here.';
+                }
+                renderActiveSlide();
+            });
+
+            $('#slide-align').addEventListener('change', e => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].align = e.target.value;
+                renderActiveSlide();
+            });
+
+            $('#slide-glow').addEventListener('change', e => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].glow = e.target.checked;
+                renderActiveSlide();
+            });
+
+            $('#slide-headline-size').addEventListener('input', e => {
+                commitActiveEdits();
+                const val = parseInt(e.target.value, 10);
+                appState.deck.slides[appState.idx].headlineSize = val;
+                $('#val-headline-size').textContent = `${val}px`;
+                renderActiveSlide();
+            });
+
+            $('#slide-sub-size').addEventListener('input', e => {
+                commitActiveEdits();
+                const val = parseInt(e.target.value, 10);
+                appState.deck.slides[appState.idx].subSize = val;
+                $('#val-sub-size').textContent = `${val}px`;
+                renderActiveSlide();
+            });
+
+            $('#slide-tag-size').addEventListener('input', e => {
+                commitActiveEdits();
+                const val = parseInt(e.target.value, 10);
+                appState.deck.slides[appState.idx].tagSize = val;
+                $('#val-tag-size').textContent = `${val}px`;
+                renderActiveSlide();
+            });
+
+            $('#slide-ba-swap').addEventListener('change', e => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].baSwap = e.target.checked;
+                renderActiveSlide();
+            });
+
+            $('#slide-code-swap').addEventListener('change', e => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].codeSwap = e.target.checked;
+                renderActiveSlide();
+            });
+
+            $('#image-upload-zone').addEventListener('click', () => {
+                $('#slide-image-file').click();
+            });
+
+            $('#slide-image-file').addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    commitActiveEdits();
+                    appState.deck.slides[appState.idx].image = evt.target.result;
+                    renderActiveSlide();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            $('#slide-image-width').addEventListener('input', e => {
+                commitActiveEdits();
+                const val = parseInt(e.target.value, 10);
+                appState.deck.slides[appState.idx].imageWidth = val;
+                $('#val-image-width').textContent = `${val}%`;
+                renderActiveSlide();
+            });
+
+            $('#slide-image-align').addEventListener('change', e => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].imageAlign = e.target.value;
+                renderActiveSlide();
+            });
+
+            $('#slide-image-border').addEventListener('change', e => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].imageBorder = e.target.checked;
+                renderActiveSlide();
+            });
+
+            $('#btn-remove-image').addEventListener('click', () => {
+                commitActiveEdits();
+                delete appState.deck.slides[appState.idx].image;
+                renderActiveSlide();
+            });
+
+            $('#btn-add-extra-text').addEventListener('click', () => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].extraText = 'Extra commentary...';
+                appState.deck.slides[appState.idx].extraTextSize = 28;
+                renderActiveSlide();
+            });
+
+            $('#slide-extra-text').addEventListener('input', e => {
+                commitActiveEdits();
+                appState.deck.slides[appState.idx].extraText = e.target.value;
+                renderActiveSlide();
+            });
+
+            $('#slide-extra-text-size').addEventListener('input', e => {
+                commitActiveEdits();
+                const val = parseInt(e.target.value, 10);
+                appState.deck.slides[appState.idx].extraTextSize = val;
+                $('#val-extra-text-size').textContent = `${val}px`;
+                renderActiveSlide();
+            });
+
+            $('#btn-remove-extra-text').addEventListener('click', () => {
+                commitActiveEdits();
+                delete appState.deck.slides[appState.idx].extraText;
+                renderActiveSlide();
+            });
+
+            // Single Slide Downloads
+            $('#btn-export-single').addEventListener('click', () => downloadSingleSlidePNG(appState.idx));
+            $('#btn-export-single-inspector').addEventListener('click', () => downloadSingleSlidePNG(appState.idx));
+
+            // Start up
+            regen();
+            renderActiveSlide();
+            window.addEventListener('resize', scaleSlidePreview);
+        });
+
+        // ----- Content rendering & display -----
+        function renderActiveSlide() {
+            if (appState.viewMode === 'storyboard') {
+                renderStoryboard();
+                return;
+            }
+            
+            const s = appState.deck.slides[appState.idx];
+            if (!s) return;
+
+            const opts = {
+                editable: true,
+                brand: appState.deck.brand,
+                handle: appState.deck.handle,
+                theme: appState.theme,
+                hideProgress: appState.hideProgress,
+                hideGlow: appState.hideGlow,
+                hideLogo: appState.hideLogo,
+                hideFooter: appState.hideFooter
+            };
+
+            slideWrapper.innerHTML = renderSlide(s, appState.idx, appState.deck.slides.length, opts);
+            
+            // Apply font presets to wrapper container
+            applyFontStyle();
+            applyThemeStyle();
+            
+            // Populate sidebar content fields
+            renderSidebarContentFields();
+            
+            // Attach event listeners for inline content editing
+            slideWrapper.querySelectorAll('[contenteditable]').forEach(el => {
+                el.addEventListener('input', () => {
+                    commitActiveEdits();
+                    updateCounterLabels();
+                    syncCanvasToSidebar();
+                });
+            });
+
+            updateCounterLabels();
+            scaleSlidePreview();
+            updateInspectorControls();
+        }
+
+        function renderStoryboard() {
+            storyboardStage.innerHTML = '';
+            const slides = appState.deck.slides;
+            
+            slides.forEach((s, i) => {
+                const card = document.createElement('div');
+                card.className = 'storyboard-card-wrap' + (i === appState.idx ? ' selected' : '');
+                card.dataset.index = i;
+                
+                const frame = document.createElement('div');
+                frame.className = 'storyboard-slide-frame';
+                
+                const opts = {
+                    editable: false,
+                    brand: appState.deck.brand,
+                    handle: appState.deck.handle,
+                    theme: appState.theme,
+                    hideProgress: appState.hideProgress,
+                    hideGlow: appState.hideGlow,
+                    hideLogo: appState.hideLogo,
+                    hideFooter: appState.hideFooter
+                };
+                
+                frame.innerHTML = renderSlide(s, i, slides.length, opts);
+                
+                const meta = document.createElement('div');
+                meta.className = 'storyboard-card-meta';
+                meta.innerHTML = `
+                    <div class="storyboard-card-label">
+                        ${String(i+1).padStart(2,'0')} <span class="kind">${s.kind || 'text'}</span>
+                    </div>
+                    <div class="storyboard-card-actions">
+                        <button class="sb-btn" onclick="event.stopPropagation(); moveSlideAt(${i}, ${i-1})" title="Move Left">←</button>
+                        <button class="sb-btn" onclick="event.stopPropagation(); moveSlideAt(${i}, ${i+1})" title="Move Right">→</button>
+                        <button class="sb-btn" onclick="event.stopPropagation(); duplicateSlideAt(${i})" title="Duplicate">⎘</button>
+                        <button class="sb-btn" onclick="event.stopPropagation(); downloadSingleSlidePNG(${i})" style="color: var(--brand-green);" title="Download PNG">↓</button>
+                        <button class="sb-btn danger" onclick="event.stopPropagation(); deleteSlideAt(${i})" title="Delete">×</button>
+                    </div>
+                `;
+                
+                card.appendChild(frame);
+                card.appendChild(meta);
+                
+                card.addEventListener('click', () => {
+                    appState.idx = i;
+                    document.querySelectorAll('.storyboard-card-wrap').forEach(w => w.classList.remove('selected'));
+                    card.classList.add('selected');
+                });
+                
+                storyboardStage.appendChild(card);
+            });
+        }
+
+        function commitActiveEdits() {
+            const el = slideWrapper.querySelector('.ig-slide');
+            if (!el) return;
+            appState.deck.slides[appState.idx] = readSlideEdits(el, appState.deck.slides[appState.idx]);
+        }
+
+        // ----- Slide management -----
+        function selectSlide(i) {
+            if (i < 0 || i >= appState.deck.slides.length) return;
+            commitActiveEdits();
+            appState.idx = i;
+            renderActiveSlide();
+        }
+
+        function addSlideAt(afterIndex) {
+            commitActiveEdits();
+            appState.deck.slides.splice(afterIndex + 1, 0, {
+                tag: 'NEW INSIGHT',
+                kind: 'text',
+                headline: 'Write your <em>headline</em> here.',
+                sub: 'Click directly on the slide cards to edit copy inline.',
+                align: 'left'
+            });
+            appState.idx = afterIndex + 1;
+            renderActiveSlide();
+        }
+
+        function duplicateSlideAt(i) {
+            commitActiveEdits();
+            const copy = JSON.parse(JSON.stringify(appState.deck.slides[i]));
+            appState.deck.slides.splice(i + 1, 0, copy);
+            appState.idx = i + 1;
+            renderActiveSlide();
+        }
+
+        function deleteSlideAt(i) {
+            if (appState.deck.slides.length <= 1) {
+                showToast('⚠ Cannot delete the last slide');
+                return;
+            }
+            commitActiveEdits();
+            appState.deck.slides.splice(i, 1);
+            if (appState.idx >= appState.deck.slides.length) {
+                appState.idx = appState.deck.slides.length - 1;
+            }
+            renderActiveSlide();
+        }
+
+        function moveSlideAt(from, to) {
+            if (to < 0 || to >= appState.deck.slides.length) return;
+            commitActiveEdits();
+            const [slide] = appState.deck.slides.splice(from, 1);
+            appState.deck.slides.splice(to, 0, slide);
+            appState.idx = to;
+            renderActiveSlide();
+        }
+
+        // ----- Styling controls -----
+        function applyFontStyle() {
+            // Font Presets scoping class changes
+            FONT_CLASSES.forEach(c => {
+                document.body.classList.remove(c);
+                slideWrapper.classList.remove(c);
+            });
+            
+            if (appState.fontPreset !== 'geist') {
+                const cls = 'preset-' + appState.fontPreset;
+                document.body.classList.add(cls);
+                slideWrapper.classList.add(cls);
+            }
+        }
+
+        function applyThemeStyle() {
+            THEME_CLASSES.forEach(c => {
+                document.body.classList.remove(c);
+                slideWrapper.classList.remove(c);
+            });
+            
+            if (appState.theme !== 'default') {
+                const cls = 'theme-' + appState.theme;
+                document.body.classList.add(cls);
+                slideWrapper.classList.add(cls);
+            }
+        }
+
+        function scaleSlidePreview() {
+            if (appState.viewMode === 'storyboard' || appState.mode === 'agency') return;
+            
+            const stage = $('.canvas-stage');
+            const wrap = $('#slide-wrapper');
+            if (!stage || !wrap) return;
+
+            const pad = 40;
+            const w = stage.clientWidth;
+            const h = stage.clientHeight;
+            if (w <= 0 || h <= 0) {
+                setTimeout(scaleSlidePreview, 50);
+                return;
+            }
+
+            const maxW = w - pad * 2;
+            const maxH = h - pad * 2;
+            
+            const slideW = 1080;
+            const slideH = 1350;
+            
+            let scale = Math.min(maxW / slideW, maxH / slideH);
+            if (isNaN(scale) || scale <= 0) scale = 0.3; // fallback safety
+            
+            wrap.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+
+        function updateCounterLabels() {
+            const count = appState.deck.slides.length;
+            navCounterNow.textContent = String(appState.idx + 1).padStart(2, '0');
+            navCounterTotal.textContent = String(count).padStart(2, '0');
+
+            // Render navigation dots
+            navDotsContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot' + (i === appState.idx ? ' active' : '');
+                dot.addEventListener('click', () => selectSlide(i));
+                navDotsContainer.appendChild(dot);
+            }
+
+            // Disable buttons appropriately
+            $('#btn-prev').disabled = (appState.idx === 0);
+            $('#btn-next').disabled = (appState.idx === count - 1);
+        }
+
+        // ----- Dashboard Tools prompt generation -----
+        function regen() {
+            const co = document.getElementById('c_company').value.trim() || 'TechViz';
+            const fo = document.getElementById('c_founder').value.trim() || 'Alex Chen';
+            const pr = document.getElementById('c_product').value.trim() || 'A no-code metrics dashboard';
+            const ic = document.getElementById('c_icp').value.trim() || 'Shopify store owners';
+            const pa = document.getElementById('c_pain').value.trim() || 'wasted ad spend, raw tables';
+            const to = document.getElementById('c_tone').value.trim() || 'direct, data-driven';
+            const pl = document.getElementById('c_platform').value || 'Instagram + LinkedIn';
+            
+            const ct = document.getElementById('c_carousel_topic').value.trim() || 'Why content marketing fails';
+            const rt = document.getElementById('c_reel_topic').value.trim() || 'Before/after reel';
+            const lt = document.getElementById('c_li_topic').value.trim() || 'LinkedIn post topic';
+
+            // Master Brief P1
+            document.getElementById('p1').value = `You are a SaaS content strategist and expert copywriter. Your job is to create high-quality, educational social media content for a B2B SaaS startup.
+
+Keep this client brief in memory for every task I give you this session:
+
+COMPANY: ${co}
+FOUNDER: ${fo}
+PRODUCT: ${pr}
+TARGET CUSTOMER (ICP): ${ic}
+MAIN PAIN POINTS: ${pa}
+BRAND TONE: ${to}
+PLATFORM: ${pl}
+
+Confirm you have this brief and are ready to generate content.`;
+
+            // Carousel P2
+            document.getElementById('p2').value = `Using the client brief from earlier in this session, write an Instagram/LinkedIn carousel.
+
+TOPIC: ${ct}
+
+FORMAT — 10 slides:
+• Slide 1: Hook — bold statement, shocking stat, or provocative question
+• Slides 2–8: One key insight per slide (short, punchy, educational)
+• Slide 9: Summary / Key Takeaway
+• Slide 10: CTA ("Save this. Follow ${co} for more.")
+
+RULES:
+• Max 15 words per slide
+• Use numbers and specifics wherever possible
+• Write like you're texting a smart friend — no jargon, no buzzwords
+• Each slide must be strong enough to stand alone
+• Output as numbered list: Slide 1: [text], Slide 2: [text], etc.`;
+
+            // Caption P3
+            document.getElementById('p3').value = `Using the client brief from earlier in this session, write a social media caption for the carousel above.
+
+PLATFORM: ${pl}
+
+FORMAT:
+• Line 1–2: Hook (must stop the scroll — be bold, specific, or counterintuitive)
+• 3–5 short sentences expanding on the value of this post
+• CTA: "Save this for later." or "Tag a founder who needs to see this."
+• One blank line
+• 15–20 hashtags (mix niche + broad)
+
+TONE: ${to}
+Do NOT use: "game-changer", "unlock", "dive in", "leverage", "in today's world".`;
+
+            // Reel P4
+            document.getElementById('p4').value = `Using the client brief from earlier in this session, write a short-form video (Reel) script.
+
+TOPIC: ${rt}
+LENGTH: 30–45 seconds
+
+STRUCTURE:
+Hook (0–3s): One sentence that stops the scroll. Bold claim or question.
+Problem (3–8s): What's going wrong for ${ic}?
+Agitate (8–15s): Make the pain feel real.
+Solution (15–28s): What does ${co} do?
+Proof/Result (28–38s): A specific outcome, stat, or before/after moment
+CTA (38–45s): "Follow for more" or "Comment YES if this is you"
+
+Output format: timestamps on the left, script on the right.`;
+
+            // LinkedIn P5
+            document.getElementById('p5').value = `Using the client brief from earlier in this session, write a LinkedIn thought leadership post on behalf of the founder of ${co}.
+
+TOPIC: ${lt}
+AUDIENCE: SaaS founders and startup marketers
+TONE: ${to} — but always human, never corporate
+
+FORMAT:
+• Opening line: Bold take or counterintuitive statement.
+• Body: 4–6 short paragraphs, 1–3 sentences each. Heavy use of white space.
+• End with a question that invites comments
+• 3–5 relevant hashtags at the very end`;
+
+            // Calendar P6
+            document.getElementById('p6').value = `Using the client brief from earlier in this session, build a 30-day content calendar for ${co} on ${pl}.
+
+CONTENT MIX:
+• 8–10 carousels
+• 2–4 Reels
+• 2–4 single image posts
+
+OUTPUT — table with these exact columns:
+| Week | Day | Post Type | Topic | Hook Line |
+
+BASE ALL TOPICS around: ${pa}
+TONE: ${to}`;
+        }
+
+        // ----- Clipboard and notifications -----
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function copyPrompt(id, btn) {
+            const text = document.getElementById(id).value;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✓ Prompt copied!');
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = orig, 1500);
+            });
+        }
+
+        function togglePrompt(id) {
+            const body = document.getElementById(`body-${id}`);
+            const chev = document.getElementById(`chev-${id}`);
+            body.classList.toggle('active');
+            chev.classList.toggle('open');
+        }
+
+        function toggleCheck(el) {
+            el.classList.toggle('checked');
+            el.closest('.wf-step').classList.toggle('done');
+        }
+
+        function copyHubText(id, btn) {
+            const text = document.getElementById(`hub-${id}`).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✓ Outreach script copied!');
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = orig, 1500);
+            });
+        }
+
+        function copyIntakeForm(btn) {
+            const text = `ContentCore Studio — Onboarding Form
+============================================
+1. What is your company name and what does your product do?
+2. Who is your ideal customer (ICP, company size, problems)?
+3. What are the top 3 pain points your product solves?
+4. What makes you different from your competitors?
+5. How would you describe your brand tone?
+6. Are there any topics, words, or angles to AVOID?
+7. Share 3 social accounts whose content you admire.`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✓ Intake form questions copied!');
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = orig, 1500);
+            });
+        }
+
+        // ----- Standsalone HTML Generation -----
+        function generateStandaloneHTML() {
+            const slidesHTML = appState.deck.slides.map((s, i) => {
+                return renderSlide(s, i, appState.deck.slides.length, {
+                    editable: false,
+                    brand: appState.deck.brand,
+                    handle: appState.deck.handle,
+                    theme: appState.theme,
+                    hideProgress: appState.hideProgress,
+                    hideGlow: appState.hideGlow,
+                    hideLogo: appState.hideLogo,
+                    hideFooter: appState.hideFooter
+                });
+            }).join('\n');
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${appState.deck.title}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,500;0,700;1,700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background: #08090c;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 0;
+            font-family: 'Geist', sans-serif;
+            overflow-y: auto;
+        }
+        .slides-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        /* Inline CSS from shared.css */
+        .ig-slide {
+            width: 1080px;
+            height: 1350px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #0d1117;
+            color: #f0f3f8;
+            --sans: 'Geist', sans-serif;
+            --mono: 'Geist Mono', monospace;
+            --indigo: #6366f1;
+            --indigo-2: #818cf8;
+            --ink: #f0f3f8;
+            --ink-2: #b1b8c2;
+            --ink-3: #6e7681;
+            --pad-x: 96px;
+            --pad-y: 120px;
+            font-family: var(--sans);
+        }
+        .ig-slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(99, 102, 241, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.025) 1px, transparent 1px);
+            background-size: 120px 120px;
+            pointer-events: none;
+        }
+        .ig-glow {
+            position: absolute;
+            width: 720px;
+            height: 720px;
+            border-radius: 50%;
+            background: var(--indigo);
+            filter: blur(220px);
+            opacity: 0.08;
+            pointer-events: none;
+        }
+        .ig-glow.tr { top: -240px; right: -240px; }
+        .ig-glow.bl { bottom: -240px; left: -240px; }
+        .ig-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 56px var(--pad-x) 0;
+            z-index: 2;
+        }
+        .ig-brand {
+            font-family: var(--mono);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--indigo);
+        }
+        .ig-brand .b { color: #6e7681; }
+        .ig-idx {
+            font-family: var(--mono);
+            font-size: 22px;
+            color: var(--ink-3);
+        }
+        .ig-idx .now { color: var(--ink); }
+        .ig-body {
+            flex: 1;
+            padding: 32px var(--pad-x);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 2;
+        }
+        .ig-body.align-center { align-items: center; text-align: center; }
+        .ig-body.align-left { text-align: left; }
+        .ig-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            font-family: var(--mono);
+            font-size: 20px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--indigo);
+            padding: 12px 22px;
+            background: rgba(99, 102, 241, 0.14);
+            border: 1px solid rgba(99, 102, 241, 0.32);
+            border-radius: 999px;
+            margin-bottom: 48px;
+        }
+        .ig-tag::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--indigo);
+            border-radius: 50%;
+        }
+        .ig-h1 {
+            font-weight: 800;
+            font-size: 100px;
+            line-height: 1.0;
+            letter-spacing: -4.5px;
+            margin-bottom: 36px;
+        }
+        .ig-h1 em { font-style: normal; color: var(--indigo); }
+        .ig-divider {
+            width: 80px;
+            height: 6px;
+            background: var(--indigo);
+            margin: 8px 0 40px;
+            border-radius: 3px;
+        }
+        .ig-body.align-center .ig-divider { margin-left: auto; margin-right: auto; }
+        .ig-sub {
+            font-size: 36px;
+            line-height: 1.5;
+            color: var(--ink-2);
+        }
+        .ig-metric {
+            font-size: 300px;
+            font-weight: 800;
+            color: var(--indigo);
+            line-height: 0.88;
+            letter-spacing: -18px;
+            margin-bottom: 16px;
+        }
+        .ig-code {
+            font-family: var(--mono);
+            font-size: 28px;
+            line-height: 1.65;
+            color: var(--indigo-2);
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 36px 40px;
+            white-space: pre-wrap;
+            position: relative;
+        }
+        .ig-code::before {
+            content: '◉ ◉ ◉';
+            position: absolute;
+            top: 14px;
+            left: 20px;
+            font-size: 14px;
+            color: #484f58;
+            letter-spacing: 8px;
+        }
+        .ig-ba {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+        .ig-ba-card {
+            padding: 36px 32px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0,0,0,0.25);
+        }
+        .ig-ba-card .lbl {
+            font-family: var(--mono);
+            font-size: 18px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .ig-ba-card .lbl::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .ig-ba-card.before { border-color: rgba(245, 158, 11, 0.25); }
+        .ig-ba-card.before .lbl { color: #f59e0b; }
+        .ig-ba-card.before .lbl::before { background: #f59e0b; }
+        .ig-ba-card.after { border-color: rgba(16, 185, 129, 0.28); }
+        .ig-ba-card.after .lbl { color: #10b981; }
+        .ig-ba-card.after .lbl::before { background: #10b981; }
+        .ig-ba-card .txt { font-size: 26px; line-height: 1.45; color: var(--ink-2); }
+        
+        .ig-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+        .ig-list li {
+            font-size: 32px;
+            display: flex;
+            align-items: baseline;
+            gap: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 24px;
+            color: var(--ink-2);
+        }
+        .ig-list li .num { font-family: var(--mono); color: var(--indigo); font-weight: 700; }
+        
+        .ig-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 32px;
+            font-weight: 700;
+            background: var(--indigo);
+            padding: 26px 48px;
+            border-radius: 12px;
+            color: #fff;
+            box-shadow: 0 12px 60px rgba(99, 102, 241, 0.4);
+        }
+        .ig-foot {
+            padding: 36px var(--pad-x);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: #12161d;
+        }
+        .ig-foot .handle { font-family: var(--mono); font-size: 22px; color: var(--indigo); }
+        .ig-foot .swipe { font-family: var(--mono); font-size: 20px; color: var(--ink-3); text-transform: uppercase; }
+        .ig-progress { position: absolute; top: 0; left: 0; height: 8px; background: var(--indigo); }
+
+        /* Font Presets */
+        .preset-modern .ig-slide { --sans: 'Inter', sans-serif; --display: 'Montserrat', sans-serif; }
+        .preset-modern .ig-h1 { font-family: 'Montserrat', sans-serif; }
+        .preset-dynamic .ig-slide { --sans: 'Inter', sans-serif; --display: 'Bebas Neue', sans-serif; }
+        .preset-dynamic .ig-h1 { font-family: 'Bebas Neue', sans-serif; font-size: 140px; text-transform: uppercase; }
+        .preset-editorial .ig-slide { --sans: 'Inter', sans-serif; --display: 'Playfair Display', serif; }
+        .preset-editorial .ig-h1 { font-family: 'Playfair Display', serif; font-size: 108px; }
+        .preset-editorial .ig-h1 em { font-style: italic; }
+        .preset-premium .ig-slide { --sans: 'Space Grotesk', sans-serif; --mono: 'IBM Plex Mono', monospace; }
+        .preset-premium .ig-h1 { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Theme Presets */
+        .theme-midnight {
+            --bg-1: #0c0b16; --bg-2: #16132b; --ink: #f8f6fc; --ink-2: #cdc9e0; --indigo: #8b5cf6;
+        }
+        .theme-cyberpunk {
+            --bg-1: #070a0e; --bg-2: #0e151e; --ink: #e0f2fe; --ink-2: #93c5fd; --indigo: #06b6d4;
+        }
+        .theme-crimson {
+            --bg-1: #0f0a0a; --bg-2: #221212; --ink: #fef2f2; --ink-2: #fca5a5; --indigo: #ef4444;
+        }
+        .theme-cream {
+            --bg-1: #f7f5ef; --bg-2: #f0eee9; --ink: #1c1812; --ink-2: #3a322a; --indigo: #6b3a1f;
+        }
+    </style>
+</head>
+<body>
+    <div class="slides-container ${appState.fontPreset !== 'geist' ? 'preset-' + appState.fontPreset : ''} ${appState.theme !== 'default' ? 'theme-' + appState.theme : ''}">
+        ${slidesHTML}
+    </div>
+</body>
+</html>`;
+        }
+
+        // ----- Slide Inspector Control Updates -----
+        function updateInspectorControls() {
+            const s = appState.deck.slides[appState.idx];
+            if (!s) return;
+
+            const idxLabel = document.getElementById('inspector-slide-index');
+            if (idxLabel) {
+                idxLabel.textContent = `${String(appState.idx + 1).padStart(2, '0')} / ${String(appState.deck.slides.length).padStart(2, '0')}`;
+            }
+
+            document.getElementById('slide-kind').value = s.kind || 'text';
+            document.getElementById('slide-align').value = s.align || 'left';
+            document.getElementById('slide-glow').checked = s.glow !== false;
+
+            const headlineSizeVal = s.headlineSize || 100;
+            document.getElementById('slide-headline-size').value = headlineSizeVal;
+            document.getElementById('val-headline-size').textContent = `${headlineSizeVal}px`;
+
+            const subSizeVal = s.subSize || 36;
+            document.getElementById('slide-sub-size').value = subSizeVal;
+            document.getElementById('val-sub-size').textContent = `${subSizeVal}px`;
+
+            const tagSizeVal = s.tagSize || 20;
+            document.getElementById('slide-tag-size').value = tagSizeVal;
+            document.getElementById('val-tag-size').textContent = `${tagSizeVal}px`;
+
+            if (s.tag !== undefined) {
+                document.getElementById('group-tag-size').style.display = 'block';
+            } else {
+                document.getElementById('group-tag-size').style.display = 'none';
+            }
+
+            const swapsZone = document.getElementById('inspector-swaps');
+            const itemBaSwap = document.getElementById('item-ba-swap');
+            const itemCodeSwap = document.getElementById('item-code-swap');
+            
+            if (s.kind === 'ba') {
+                swapsZone.style.display = 'block';
+                itemBaSwap.style.display = 'flex';
+                itemCodeSwap.style.display = 'none';
+                document.getElementById('slide-ba-swap').checked = !!s.baSwap;
+            } else if (s.kind === 'code') {
+                swapsZone.style.display = 'block';
+                itemBaSwap.style.display = 'none';
+                itemCodeSwap.style.display = 'flex';
+                document.getElementById('slide-code-swap').checked = !!s.codeSwap;
+            } else {
+                swapsZone.style.display = 'none';
+            }
+
+            const uploadZone = document.getElementById('image-upload-zone');
+            const settingsZone = document.getElementById('image-settings-zone');
+            if (s.image) {
+                uploadZone.style.display = 'none';
+                settingsZone.style.display = 'flex';
+                document.getElementById('img-preview').src = s.image;
+                document.getElementById('img-filename').textContent = s.image.startsWith('data:') ? 'uploaded_image.png' : 'slide_image.png';
+                
+                const imageWidthVal = s.imageWidth || 60;
+                document.getElementById('slide-image-width').value = imageWidthVal;
+                document.getElementById('val-image-width').textContent = `${imageWidthVal}%`;
+                
+                document.getElementById('slide-image-align').value = s.imageAlign || 'center';
+                document.getElementById('slide-image-border').checked = s.imageBorder !== false;
+            } else {
+                uploadZone.style.display = 'block';
+                settingsZone.style.display = 'none';
+            }
+
+            const btnAddExtraText = document.getElementById('btn-add-extra-text');
+            const extraTextZone = document.getElementById('extra-text-settings-zone');
+            if (s.extraText !== undefined) {
+                btnAddExtraText.style.display = 'none';
+                extraTextZone.style.display = 'flex';
+                document.getElementById('slide-extra-text').value = s.extraText;
+                
+                const extraSizeVal = s.extraTextSize || 28;
+                document.getElementById('slide-extra-text-size').value = extraSizeVal;
+                document.getElementById('val-extra-text-size').textContent = `${extraSizeVal}px`;
+            } else {
+                btnAddExtraText.style.display = 'block';
+                extraTextZone.style.display = 'none';
+            }
+        }
+
+        // ----- Single Slide PNG Export Action -----
+        async function downloadSingleSlidePNG(i) {
+            commitActiveEdits();
+            const slides = appState.deck.slides;
+            if (i < 0 || i >= slides.length) return;
+            const slide = slides[i];
+            const meta = {
+                brand: appState.deck.brand,
+                handle: appState.deck.handle,
+                theme: appState.theme,
+                hideProgress: appState.hideProgress,
+                hideGlow: appState.hideGlow,
+                hideLogo: appState.hideLogo,
+                hideFooter: appState.hideFooter
+            };
+            
+            showToast(`Rendering slide ${i+1} PNG...`);
+            try {
+                await exportSingleSlideAsPNG(slide, i, slides.length, meta);
+                showToast(`✓ Slide ${i+1} downloaded!`);
+            } catch (err) {
+                console.error("Export Single Slide Error: ", err);
+                showToast(`⚠ Download failed`);
+            }
+        }
+
+        // ----- Workspace check boxes -----
+        function chk(el) {
+            el.classList.toggle('checked');
+            el.textContent = el.classList.contains('checked') ? '✓' : '';
+            el.closest('.step').classList.toggle('done-step', el.classList.contains('checked'));
+        }
+
+        // ----- Unified Clipboard Copy Helper -----
+        function copyTextFromId(id, btn) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const text = el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? el.value : el.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✓ Copied to clipboard!');
+                if (btn) {
+                    const orig = btn.textContent;
+                    btn.textContent = '✓ Copied!';
+                    setTimeout(() => btn.textContent = orig, 1500);
+                }
+            });
+        }
+
+        // ----- Onboarding Form Copy Action -----
+        function copyIntakeFormQuestions() {
+            const text = `ContentCore Studio — Onboarding Form
+============================================
+1. What is your company name and what does your product do? (1-2 sentences)
+2. Who is your ideal customer? Be specific: job title, company size, and main problem they face daily.
+3. What are the top 3 pain points your product solves?
+4. What makes you different from competitors? (Don't say "we're better" — what specifically is different?)
+5. How would you describe your brand tone? (e.g. professional, casual, witty, data-driven, bold, no-BS)
+6. Are there any topics, words, or angles you want to AVOID?
+7. Do you have any existing content or posts you like? Share links.
+8. What's your primary platform: Instagram, LinkedIn, or both?
+9. Any upcoming product launches, features, or campaigns in the next 30 days?
+10. Share 3 social accounts — from your industry or not — whose content you think is done really well.
+11. What does success look like after 90 days of working together?`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✓ Onboarding questions copied!');
+            });
+        }
+
+        // ----- Sidebar Slide Content Editor logic -----
+        function renderSidebarContentFields() {
+            const s = appState.deck.slides[appState.idx];
+            const container = document.getElementById('sidebar-content-fields');
+            if (!s || !container) return;
+            
+            let html = '';
+            
+            // Tag field
+            if (s.tag !== undefined) {
+                html += `
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>Eyebrow Tag</label>
+                        <input type="text" id="sb-input-tag" value="${escapeHTML(s.tag)}" oninput="updateSlideField('tag', this.value)">
+                    </div>
+                `;
+            }
+            
+            // Headline field
+            if (s.headline !== undefined && s.kind !== 'subtext') {
+                html += `
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>Headline (<em>accent</em> color styling)</label>
+                        <textarea id="sb-input-headline" style="min-height: 60px;" oninput="updateSlideField('headline', this.value)">${escapeHTML(s.headline)}</textarea>
+                    </div>
+                `;
+            }
+            
+            // Metric field (if kind is metric)
+            if (s.kind === 'metric' && s.metric !== undefined) {
+                html += `
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>Metric Number</label>
+                        <input type="text" id="sb-input-metric" value="${escapeHTML(s.metric)}" oninput="updateSlideField('metric', this.value)">
+                    </div>
+                `;
+            }
+            
+            // Subtext field (if s.sub is defined, and not a code slide)
+            if (s.sub !== undefined && s.kind !== 'code') {
+                html += `
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>Subtext</label>
+                        <textarea id="sb-input-sub" style="min-height: 60px;" oninput="updateSlideField('sub', this.value)">${escapeHTML(s.sub)}</textarea>
+                    </div>
+                `;
+            }
+            
+            // Code block field (if kind is code)
+            if (s.kind === 'code' && s.code !== undefined) {
+                html += `
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>Code Block</label>
+                        <textarea id="sb-input-code" style="min-height: 100px; font-family: var(--mono); font-size: 11.5px;" oninput="updateSlideField('code', this.value)">${escapeHTML(s.code)}</textarea>
+                    </div>
+                `;
+                // Subtext block for code slide
+                if (s.sub !== undefined) {
+                    html += `
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <label>Code Subtext</label>
+                            <textarea id="sb-input-sub" style="min-height: 60px;" oninput="updateSlideField('sub', this.value)">${escapeHTML(s.sub)}</textarea>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Before/After fields (if kind is ba)
+            if (s.kind === 'ba' && s.ba) {
+                html += `
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>Before State Text</label>
+                        <textarea id="sb-input-ba-before" style="min-height: 60px;" oninput="updateSlideField('ba-before', this.value)">${escapeHTML(s.ba.before)}</textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>After State Text</label>
+                        <textarea id="sb-input-ba-after" style="min-height: 60px;" oninput="updateSlideField('ba-after', this.value)">${escapeHTML(s.ba.after)}</textarea>
+                    </div>
+                `;
+            }
+            
+            // List Items fields (if kind is list)
+            if (s.kind === 'list' && Array.isArray(s.list)) {
+                html += `<div class="form-group" style="margin-bottom: 8px;"><label>List Items</label><div style="display:flex; flex-direction:column; gap:8px;">`;
+                s.list.forEach((item, i) => {
+                    html += `
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <span style="font-family: var(--mono); font-size: 11px; color: var(--text-muted); min-width: 18px;">${String(i+1).padStart(2,'0')}</span>
+                            <input type="text" id="sb-input-list-${i}" value="${escapeHTML(item)}" oninput="updateSlideField('list-${i}', this.value)" style="flex:1;">
+                            <button class="btn" style="padding: 6px; color: var(--brand-red); background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center;" onclick="removeSlideListItem(${i})" title="Delete Item">×</button>
+                        </div>
+                    `;
+                });
+                html += `
+                    <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 11px; margin-top: 4px;" onclick="addSlideListItem()">＋ Add List Item</button>
+                </div></div>`;
+            }
+            
+            // CTA button field (if kind is cta)
+            if (s.kind === 'cta' && s.cta !== undefined) {
+                html += `
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>CTA Button Text</label>
+                        <input type="text" id="sb-input-cta" value="${escapeHTML(s.cta)}" oninput="updateSlideField('cta', this.value)">
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function updateSlideField(key, val) {
+            const s = appState.deck.slides[appState.idx];
+            if (!s) return;
+            
+            if (key === 'tag') s.tag = val;
+            else if (key === 'headline') s.headline = val;
+            else if (key === 'sub') s.sub = val;
+            else if (key === 'metric') s.metric = val;
+            else if (key === 'code') s.code = val;
+            else if (key === 'cta') s.cta = val;
+            else if (key === 'ba-before') {
+                if (!s.ba) s.ba = {};
+                s.ba.before = val;
+            }
+            else if (key === 'ba-after') {
+                if (!s.ba) s.ba = {};
+                s.ba.after = val;
+            }
+            else if (key.startsWith('list-')) {
+                const i = parseInt(key.split('-')[1], 10);
+                if (s.list && s.list[i] !== undefined) {
+                    s.list[i] = val;
+                }
+            }
+            
+            const opts = {
+                editable: true,
+                brand: appState.deck.brand,
+                handle: appState.deck.handle,
+                theme: appState.theme,
+                hideProgress: appState.hideProgress,
+                hideGlow: appState.hideGlow,
+                hideLogo: appState.hideLogo,
+                hideFooter: appState.hideFooter
+            };
+            
+            slideWrapper.innerHTML = renderSlide(s, appState.idx, appState.deck.slides.length, opts);
+            applyFontStyle();
+            applyThemeStyle();
+            
+            slideWrapper.querySelectorAll('[contenteditable]').forEach(el => {
+                el.addEventListener('input', () => {
+                    commitActiveEdits();
+                    updateCounterLabels();
+                    syncCanvasToSidebar();
+                });
+            });
+            updateCounterLabels();
+            scaleSlidePreview();
+        }
+
+        function addSlideListItem() {
+            const s = appState.deck.slides[appState.idx];
+            if (!s || !Array.isArray(s.list)) return;
+            s.list.push('New list item');
+            renderActiveSlide();
+        }
+
+        function removeSlideListItem(i) {
+            const s = appState.deck.slides[appState.idx];
+            if (!s || !Array.isArray(s.list)) return;
+            s.list.splice(i, 1);
+            renderActiveSlide();
+        }
+
+        function syncCanvasToSidebar() {
+            const s = appState.deck.slides[appState.idx];
+            if (!s) return;
+            
+            const tagInput = document.getElementById('sb-input-tag');
+            if (tagInput && s.tag !== undefined) tagInput.value = s.tag;
+            
+            const headlineInput = document.getElementById('sb-input-headline');
+            if (headlineInput && s.headline !== undefined) headlineInput.value = s.headline;
+            
+            const metricInput = document.getElementById('sb-input-metric');
+            if (metricInput && s.metric !== undefined) metricInput.value = s.metric;
+            
+            const subInput = document.getElementById('sb-input-sub');
+            if (subInput && s.sub !== undefined) subInput.value = s.sub;
+            
+            const codeInput = document.getElementById('sb-input-code');
+            if (codeInput && s.code !== undefined) codeInput.value = s.code;
+            
+            const beforeInput = document.getElementById('sb-input-ba-before');
+            if (beforeInput && s.ba && s.ba.before !== undefined) beforeInput.value = s.ba.before;
+            
+            const afterInput = document.getElementById('sb-input-ba-after');
+            if (afterInput && s.ba && s.ba.after !== undefined) afterInput.value = s.ba.after;
+            
+            if (s.kind === 'list' && Array.isArray(s.list)) {
+                s.list.forEach((item, i) => {
+                    const itemInput = document.getElementById(`sb-input-list-${i}`);
+                    if (itemInput) itemInput.value = item;
+                });
+            }
+            
+            const ctaInput = document.getElementById('sb-input-cta');
+            if (ctaInput && s.cta !== undefined) ctaInput.value = s.cta;
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

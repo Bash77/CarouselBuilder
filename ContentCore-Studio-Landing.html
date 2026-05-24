@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ContentCore Studio — Built with Claude</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Outfit', 'system-ui', 'sans-serif'],
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          ink: {
+            900: '#06060c',
+            800: '#0b0b14',
+            700: '#11111d',
+            600: '#161628',
+          },
+          glow: {
+            500: '#4f46e5',
+            400: '#6366f1',
+            300: '#818cf8',
+            200: '#a5b4fc',
+          },
+        },
+        boxShadow: {
+          glow: '0 0 60px -10px rgba(99, 102, 241, 0.5)',
+          'glow-lg': '0 0 120px -20px rgba(99, 102, 241, 0.45)',
+          card: '0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #06060c;
+    color: #f1f5f9;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 0%, rgba(79, 70, 229, 0.18), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 30%, rgba(129, 140, 248, 0.08), transparent 70%),
+      #06060c;
+    min-height: 100vh;
+  }
+  /* Soft grid overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent 75%);
+    z-index: 0;
+  }
+
+  /* Big display headlines */
+  .display {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 0.98;
+  }
+
+  /* Smooth scroll */
+  html { scroll-behavior: smooth; }
+
+  /* Selection */
+  ::selection { background: rgba(99, 102, 241, 0.4); color: #fff; }
+
+  /* Animations used in the orbital timeline */
+  @keyframes orbital-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  @keyframes orbital-ping {
+    75%, 100% { transform: scale(2); opacity: 0; }
+  }
+  .anim-pulse { animation: orbital-pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+  .anim-ping { animation: orbital-ping 2.2s cubic-bezier(0,0,0.2,1) infinite; }
+
+  /* Carousel mockup gradient halos */
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+    50% { transform: translateY(-10px) rotate(var(--rot, 0deg)); }
+  }
+  .drift-slow { animation: drift 8s ease-in-out infinite; }
+
+  /* Marquee for tech stack */
+  @keyframes marq {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .marq { animation: marq 40s linear infinite; }
+
+  /* Glow text accent */
+  .text-gradient {
+    background: linear-gradient(180deg, #ffffff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-glow {
+    color: #a5b4fc;
+    text-shadow: 0 0 36px rgba(129, 140, 248, 0.55);
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body class="relative">
+<div id="root" class="relative z-10"></div>
+
+<script type="text/babel" data-source="bwc-icons.jsx">
+// bwc-icons.jsx — minimal inline lucide-style icons used across the page
+
+function makeIcon(paths) {
+  return function Icon({ size = 16, strokeWidth = 2, className = "", style = {} }) {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        style={style}
+        aria-hidden="true"
+      >
+        {paths}
+      </svg>
+    );
+  };
+}
+
+const IconArrowRight = makeIcon(
+  <>
+    <path d="M5 12h14" />
+    <path d="m12 5 7 7-7 7" />
+  </>
+);
+
+const IconArrowUpRight = makeIcon(
+  <>
+    <path d="M7 7h10v10" />
+    <path d="M7 17 17 7" />
+  </>
+);
+
+const IconZap = makeIcon(<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />);
+
+const IconLink = makeIcon(
+  <>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </>
+);
+
+const IconBrief = makeIcon(
+  <>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="9" y1="13" x2="15" y2="13" />
+    <line x1="9" y1="17" x2="13" y2="17" />
+  </>
+);
+
+const IconBrain = makeIcon(
+  <>
+    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z" />
+    <path d="M14.5 2a2.5 2.5 0 0 0-2.5 2.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z" />
+  </>
+);
+
+const IconLayout = makeIcon(
+  <>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M3 9h18" />
+    <path d="M9 21V9" />
+  </>
+);
+
+const IconSend = makeIcon(
+  <>
+    <path d="m22 2-7 20-4-9-9-4z" />
+    <path d="M22 2 11 13" />
+  </>
+);
+
+const IconCheck = makeIcon(<polyline points="20 6 9 17 4 12" />);
+
+const IconStar = makeIcon(
+  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+);
+
+const IconChevronRight = makeIcon(<polyline points="9 18 15 12 9 6" />);
+
+const IconGrip = makeIcon(
+  <>
+    <circle cx="9" cy="5" r="1" />
+    <circle cx="9" cy="12" r="1" />
+    <circle cx="9" cy="19" r="1" />
+    <circle cx="15" cy="5" r="1" />
+    <circle cx="15" cy="12" r="1" />
+    <circle cx="15" cy="19" r="1" />
+  </>
+);
+
+const IconHeart = makeIcon(
+  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />
+);
+
+const IconBookmark = makeIcon(<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />);
+
+const IconChat = makeIcon(<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />);
+
+const IconShare = makeIcon(
+  <>
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+    <polyline points="16 6 12 2 8 6" />
+    <line x1="12" y1="2" x2="12" y2="15" />
+  </>
+);
+
+const IconSparkle = makeIcon(
+  <>
+    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z" />
+  </>
+);
+
+const IconLogo = makeIcon(
+  <>
+    <path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6z" />
+    <path d="M9 12l2 2 4-4" />
+  </>
+);
+
+// Expose
+Object.assign(window, {
+  IconArrowRight,
+  IconArrowUpRight,
+  IconZap,
+  IconLink,
+  IconBrief,
+  IconBrain,
+  IconLayout,
+  IconSend,
+  IconCheck,
+  IconStar,
+  IconChevronRight,
+  IconGrip,
+  IconHeart,
+  IconBookmark,
+  IconChat,
+  IconShare,
+  IconSparkle,
+  IconLogo,
+});
+
+</script>
+<script type="text/babel" data-source="bwc-orbital.jsx">
+// bwc-orbital.jsx — Radial orbital timeline (ported from shadcn TSX)
+// 4 nodes representing the ContentCore system: Brief → Claude → Assembly → Post
+
+function RadialOrbitalTimeline({ timelineData }) {
+  const [expandedItems, setExpandedItems] = React.useState({});
+  const [rotationAngle, setRotationAngle] = React.useState(0);
+  const [autoRotate, setAutoRotate] = React.useState(true);
+  const [pulseEffect, setPulseEffect] = React.useState({});
+  const [activeNodeId, setActiveNodeId] = React.useState(null);
+  const containerRef = React.useRef(null);
+  const orbitRef = React.useRef(null);
+  const nodeRefs = React.useRef({});
+
+  const handleContainerClick = (e) => {
+    if (e.target === containerRef.current || e.target === orbitRef.current) {
+      setExpandedItems({});
+      setActiveNodeId(null);
+      setPulseEffect({});
+      setAutoRotate(true);
+    }
+  };
+
+  const toggleItem = (id) => {
+    setExpandedItems((prev) => {
+      const newState = {};
+      Object.keys(prev).forEach((key) => {
+        if (parseInt(key) !== id) newState[parseInt(key)] = false;
+      });
+      newState[id] = !prev[id];
+
+      if (!prev[id]) {
+        setActiveNodeId(id);
+        setAutoRotate(false);
+        const item = timelineData.find((x) => x.id === id);
+        const related = item ? item.relatedIds : [];
+        const newPulse = {};
+        related.forEach((rid) => (newPulse[rid] = true));
+        setPulseEffect(newPulse);
+        centerViewOnNode(id);
+      } else {
+        setActiveNodeId(null);
+        setAutoRotate(true);
+        setPulseEffect({});
+      }
+      return newState;
+    });
+  };
+
+  React.useEffect(() => {
+    let timer;
+    if (autoRotate) {
+      timer = setInterval(() => {
+        setRotationAngle((prev) => +((prev + 0.25) % 360).toFixed(3));
+      }, 50);
+    }
+    return () => timer && clearInterval(timer);
+  }, [autoRotate]);
+
+  const centerViewOnNode = (nodeId) => {
+    if (!nodeRefs.current[nodeId]) return;
+    const idx = timelineData.findIndex((x) => x.id === nodeId);
+    const total = timelineData.length;
+    const targetAngle = (idx / total) * 360;
+    setRotationAngle(270 - targetAngle);
+  };
+
+  const calcPosition = (index, total) => {
+    const angle = ((index / total) * 360 + rotationAngle) % 360;
+    const radius = 220;
+    const radian = (angle * Math.PI) / 180;
+    const x = radius * Math.cos(radian);
+    const y = radius * Math.sin(radian);
+    const zIndex = Math.round(100 + 50 * Math.cos(radian));
+    const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2)));
+    return { x, y, angle, zIndex, opacity };
+  };
+
+  const isRelatedToActive = (itemId) => {
+    if (!activeNodeId) return false;
+    const item = timelineData.find((x) => x.id === activeNodeId);
+    return item ? item.relatedIds.includes(itemId) : false;
+  };
+
+  const statusStyle = (status) => {
+    switch (status) {
+      case "completed":
+        return "text-white bg-glow-500/30 border-glow-400";
+      case "in-progress":
+        return "text-glow-200 bg-glow-500/20 border-glow-400";
+      case "pending":
+        return "text-white/70 bg-white/5 border-white/20";
+      default:
+        return "text-white/70 bg-white/5 border-white/20";
+    }
+  };
+
+  return (
+    <div
+      className="relative w-full h-[640px] flex items-center justify-center select-none"
+      ref={containerRef}
+      onClick={handleContainerClick}
+    >
+      {/* Ambient glow halo */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="w-[480px] h-[480px] rounded-full bg-glow-500/10 blur-3xl"></div>
+      </div>
+
+      <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
+        <div
+          className="absolute w-full h-full flex items-center justify-center"
+          ref={orbitRef}
+          style={{ perspective: "1000px" }}
+        >
+          {/* Center sun */}
+          <div className="absolute w-20 h-20 rounded-full bg-gradient-to-br from-glow-400 via-glow-500 to-indigo-700 anim-pulse flex items-center justify-center z-10 shadow-glow-lg">
+            <div className="absolute w-24 h-24 rounded-full border border-glow-300/40 anim-ping opacity-70"></div>
+            <div
+              className="absolute w-32 h-32 rounded-full border border-glow-300/20 anim-ping opacity-50"
+              style={{ animationDelay: "0.7s" }}
+            ></div>
+            <div className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center">
+              <IconSparkle size={20} className="text-glow-500" strokeWidth={2.5} />
+            </div>
+          </div>
+
+          {/* Orbit ring */}
+          <div
+            className="absolute rounded-full border border-white/10"
+            style={{ width: 460, height: 460 }}
+          ></div>
+          <div
+            className="absolute rounded-full border border-white/[0.04]"
+            style={{ width: 600, height: 600 }}
+          ></div>
+
+          {timelineData.map((item, index) => {
+            const pos = calcPosition(index, timelineData.length);
+            const isExpanded = expandedItems[item.id];
+            const isRelated = isRelatedToActive(item.id);
+            const isPulsing = pulseEffect[item.id];
+            const Icon = item.icon;
+
+            return (
+              <div
+                key={item.id}
+                ref={(el) => (nodeRefs.current[item.id] = el)}
+                className="absolute transition-all duration-700 cursor-pointer"
+                style={{
+                  transform: `translate(${pos.x}px, ${pos.y}px)`,
+                  zIndex: isExpanded ? 200 : pos.zIndex,
+                  opacity: isExpanded ? 1 : pos.opacity,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleItem(item.id);
+                }}
+              >
+                {/* Energy halo */}
+                <div
+                  className={`absolute rounded-full -inset-1 ${isPulsing ? "anim-pulse" : ""}`}
+                  style={{
+                    background: `radial-gradient(circle, rgba(129,140,248,0.35) 0%, rgba(99,102,241,0) 70%)`,
+                    width: `${item.energy * 0.6 + 50}px`,
+                    height: `${item.energy * 0.6 + 50}px`,
+                    left: `-${(item.energy * 0.6 + 50 - 44) / 2}px`,
+                    top: `-${(item.energy * 0.6 + 50 - 44) / 2}px`,
+                  }}
+                ></div>
+
+                {/* Node */}
+                <div
+                  className={`
+                    relative w-11 h-11 rounded-full flex items-center justify-center
+                    transition-all duration-300 transform
+                    ${isExpanded
+                      ? "bg-white text-glow-500 scale-150 shadow-glow"
+                      : isRelated
+                      ? "bg-glow-500/30 text-white border-glow-300 anim-pulse"
+                      : "bg-ink-700/80 text-white border-white/20 backdrop-blur"
+                    }
+                    border-2
+                  `}
+                >
+                  <Icon size={18} strokeWidth={2.2} />
+                </div>
+
+                {/* Label */}
+                <div
+                  className={`
+                    absolute top-14 left-1/2 -translate-x-1/2 whitespace-nowrap
+                    text-[11px] font-mono uppercase tracking-[0.18em]
+                    transition-all duration-300
+                    ${isExpanded ? "text-white scale-110" : "text-white/55"}
+                  `}
+                >
+                  {item.title}
+                </div>
+
+                {/* Expanded card */}
+                {isExpanded && (
+                  <div
+                    className="absolute top-24 left-1/2 -translate-x-1/2 w-72 rounded-xl bg-ink-700/85 backdrop-blur-xl border border-glow-400/40 shadow-glow-lg overflow-visible"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-px h-3 bg-glow-400/70"></div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <span
+                          className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${statusStyle(item.status)}`}
+                        >
+                          {item.status === "completed"
+                            ? "Always on"
+                            : item.status === "in-progress"
+                            ? "Live"
+                            : "Next"}
+                        </span>
+                        <span className="text-[10px] font-mono text-white/40">
+                          {item.date}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-semibold text-white mb-2">{item.title}</h4>
+                      <p className="text-xs text-white/70 leading-relaxed">{item.content}</p>
+
+                      {/* Energy meter */}
+                      <div className="mt-4 pt-3 border-t border-white/10">
+                        <div className="flex justify-between items-center text-[10px] mb-1.5 text-white/60">
+                          <span className="flex items-center">
+                            <IconZap size={10} className="mr-1" />
+                            Effort to you
+                          </span>
+                          <span className="font-mono">{100 - item.energy}%</span>
+                        </div>
+                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-glow-500 to-glow-300"
+                            style={{ width: `${100 - item.energy}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Connected */}
+                      {item.relatedIds.length > 0 && (
+                        <div className="mt-4 pt-3 border-t border-white/10">
+                          <div className="flex items-center mb-2">
+                            <IconLink size={10} className="text-white/50 mr-1.5" />
+                            <h5 className="text-[10px] uppercase tracking-wider font-medium text-white/50">
+                              Connected steps
+                            </h5>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.relatedIds.map((rid) => {
+                              const rel = timelineData.find((i) => i.id === rid);
+                              if (!rel) return null;
+                              return (
+                                <button
+                                  key={rid}
+                                  className="flex items-center h-6 px-2 text-[10px] rounded border border-white/15 bg-white/[0.03] hover:bg-glow-500/20 hover:border-glow-400 text-white/80 hover:text-white transition-all"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleItem(rid);
+                                  }}
+                                >
+                                  {rel.title}
+                                  <IconArrowRight size={9} className="ml-1 text-white/50" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Instruction hint */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[11px] font-mono uppercase tracking-[0.2em] text-white/40">
+        click any node to expand
+      </div>
+    </div>
+  );
+}
+
+window.RadialOrbitalTimeline = RadialOrbitalTimeline;
+
+</script>
+<script type="text/babel" data-source="bwc-shuffle.jsx">
+// bwc-shuffle.jsx — Draggable testimonial shuffle cards (hand-rolled, no framer-motion)
+
+function ShuffleCards({ testimonials }) {
+  const [positions, setPositions] = React.useState(
+    testimonials.map((_, i) => (i === 0 ? "front" : i === 1 ? "middle" : "back"))
+  );
+
+  // Pointer-drag state for the front card
+  const [dragX, setDragX] = React.useState(0);
+  const dragStartRef = React.useRef(null);
+
+  const handleShuffle = () => {
+    setPositions((prev) => {
+      const next = [...prev];
+      next.unshift(next.pop());
+      return next;
+    });
+    setDragX(0);
+  };
+
+  const onPointerDown = (e) => {
+    dragStartRef.current = e.clientX;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e) => {
+    if (dragStartRef.current == null) return;
+    setDragX(e.clientX - dragStartRef.current);
+  };
+  const onPointerUp = (e) => {
+    if (dragStartRef.current == null) return;
+    const dx = e.clientX - dragStartRef.current;
+    dragStartRef.current = null;
+    if (dx < -120) {
+      handleShuffle();
+    } else {
+      setDragX(0);
+    }
+  };
+
+  return (
+    <div className="grid place-content-center w-full">
+      <div className="relative h-[460px] w-[340px] -ml-[80px] md:-ml-[150px]">
+        {testimonials.map((t, i) => {
+          const pos = positions[i];
+          const isFront = pos === "front";
+
+          // Base transform per position
+          let rot = pos === "front" ? -6 : pos === "middle" ? 0 : 6;
+          let tx = pos === "front" ? 0 : pos === "middle" ? 110 : 220;
+          let z = pos === "front" ? 3 : pos === "middle" ? 2 : 1;
+          let scale = pos === "front" ? 1 : 0.98;
+
+          if (isFront && dragX !== 0) {
+            tx = dragX;
+            rot = -6 + dragX * 0.04;
+          }
+
+          const transition = dragStartRef.current && isFront
+            ? "none"
+            : "transform 380ms cubic-bezier(0.4,0.0,0.2,1)";
+
+          return (
+            <div
+              key={t.id}
+              onPointerDown={isFront ? onPointerDown : undefined}
+              onPointerMove={isFront ? onPointerMove : undefined}
+              onPointerUp={isFront ? onPointerUp : undefined}
+              onPointerCancel={isFront ? onPointerUp : undefined}
+              className={`
+                absolute left-0 top-0 h-[460px] w-[340px] grid place-content-center gap-5
+                rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl
+                shadow-card overflow-hidden
+                ${isFront ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"}
+              `}
+              style={{
+                zIndex: z,
+                transform: `translateX(${tx}%) rotate(${rot}deg) scale(${scale})`,
+                transition,
+                touchAction: "none",
+                userSelect: "none",
+              }}
+            >
+              {/* corner halo */}
+              <div className="pointer-events-none absolute -top-12 -right-12 w-48 h-48 rounded-full bg-glow-500/15 blur-3xl"></div>
+
+              {/* stars */}
+              <div className="flex justify-center gap-0.5 text-glow-300">
+                {[0,1,2,3,4].map((s) => (
+                  <IconStar key={s} size={14} className="fill-current" strokeWidth={1.5} style={{ fill: "currentColor" }} />
+                ))}
+              </div>
+
+              {/* quote */}
+              <p className="text-center text-[15px] leading-snug font-display italic text-white/90 px-1">
+                "{t.testimonial}"
+              </p>
+
+              {/* avatar */}
+              <div className="flex flex-col items-center gap-2">
+                <div
+                  className="w-14 h-14 rounded-full border border-white/15"
+                  style={{
+                    background: `linear-gradient(135deg, ${t.color1} 0%, ${t.color2} 100%)`,
+                    boxShadow: `0 0 30px -10px ${t.color1}`,
+                  }}
+                ></div>
+                <div className="text-center">
+                  <div className="text-sm font-semibold text-white">{t.author}</div>
+                  <div className="text-[11px] font-mono uppercase tracking-wider text-glow-300/80 mt-0.5">
+                    {t.role}
+                  </div>
+                </div>
+              </div>
+
+              {/* result chip */}
+              <div className="mx-auto inline-flex items-center gap-1.5 rounded-full border border-glow-400/30 bg-glow-500/15 px-3 py-1 text-[11px] font-mono uppercase tracking-wider text-glow-200">
+                <IconZap size={11} />
+                {t.result}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Shuffle hint */}
+        <button
+          onClick={handleShuffle}
+          className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-[11px] font-mono uppercase tracking-[0.2em] text-white/40 hover:text-glow-300 transition-colors flex items-center gap-1.5"
+        >
+          drag left or tap
+          <IconChevronRight size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+window.ShuffleCards = ShuffleCards;
+
+</script>
+<script type="text/babel" data-source="bwc-sections.jsx">
+// bwc-sections.jsx — landing page sections for ContentCore Studio
+
+// ── Carousel mockup: a "phone slide" with editorial content ─────────
+function CarouselMockup({
+  rotation = 0,
+  zIndex = 1,
+  scale = 1,
+  tx = 0,
+  ty = 0,
+  variant = "primary",
+  delay = "0s",
+  blurred = false,
+}) {
+  const variants = {
+    primary: {
+      kicker: "01 · HOOK",
+      title: "How our AI rebuilds",
+      titleAccent: "SaaS marketing",
+      subline: "A 10-slide breakdown · est. 2 min read",
+      handle: "@contentcore",
+      bg: "linear-gradient(160deg, #18182a 0%, #0e0e1a 100%)",
+      glow: "rgba(99,102,241,0.5)",
+    },
+    left: {
+      kicker: "04 · TRANSFORMATION",
+      title: "ContentCore studio:",
+      titleAccent: "the future of B2B content",
+      subline: "AI-powered · founder-approved",
+      handle: "@contentcore",
+      bg: "linear-gradient(170deg, #1a1525 0%, #0d0a16 100%)",
+      glow: "rgba(168,85,247,0.4)",
+    },
+    right: {
+      kicker: "07 · THE LOGIC",
+      title: "How we optimize",
+      titleAccent: "every carousel",
+      subline: "10–14 pieces / month, on autopilot",
+      handle: "@contentcore",
+      bg: "linear-gradient(160deg, #131c2a 0%, #0a0e1a 100%)",
+      glow: "rgba(56,189,248,0.35)",
+    },
+    far: {
+      kicker: "02 · THE PAIN",
+      title: "Stop staring at",
+      titleAccent: "the blank screen",
+      subline: "11 likes. Then silence.",
+      handle: "@contentcore",
+      bg: "linear-gradient(170deg, #2a1818 0%, #170d0d 100%)",
+      glow: "rgba(244,114,182,0.3)",
+    },
+  };
+  const v = variants[variant] || variants.primary;
+
+  return (
+    <div
+      className={blurred ? "drift-slow" : "drift-slow"}
+      style={{
+        position: "absolute",
+        width: 270,
+        height: 360,
+        transform: `translate(${tx}px, ${ty}px) rotate(${rotation}deg) scale(${scale})`,
+        zIndex,
+        animationDelay: delay,
+        ["--rot"]: `${rotation}deg`,
+        filter: blurred ? "blur(2.5px) saturate(0.85)" : "none",
+        transition: "filter .3s",
+      }}
+    >
+      {/* glow halo */}
+      <div
+        style={{
+          position: "absolute",
+          inset: -40,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${v.glow} 0%, transparent 60%)`,
+          filter: "blur(28px)",
+          opacity: 0.7,
+          zIndex: -1,
+        }}
+      />
+
+      {/* phone bezel */}
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: 28,
+          background: v.bg,
+          border: "1px solid rgba(255,255,255,0.08)",
+          boxShadow:
+            "0 30px 80px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.06)",
+          padding: "18px 18px",
+          color: "#f1f5f9",
+          fontFamily: "Inter, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {/* top row */}
+        <div className="flex items-center justify-between text-[9px] font-mono uppercase tracking-[0.18em] text-white/40">
+          <span>{v.handle}</span>
+          <span className="px-1.5 py-0.5 rounded border border-white/15 bg-white/[0.04]">
+            1/10
+          </span>
+        </div>
+
+        {/* kicker */}
+        <div className="text-[9px] font-mono uppercase tracking-[0.22em] text-glow-300 mt-3 font-semibold">
+          {v.kicker}
+        </div>
+
+        {/* headline */}
+        <div className="font-display font-bold text-[22px] leading-[1.05] tracking-tight text-white">
+          {v.title}
+          <br />
+          <span className="text-gradient">{v.titleAccent}</span>
+        </div>
+
+        {/* tag line */}
+        <div className="text-[11px] text-white/55 italic font-display mt-1">{v.subline}</div>
+
+        {/* spacer */}
+        <div className="flex-1"></div>
+
+        {/* footer: like / comment / share */}
+        <div className="flex items-center gap-3 text-white/35 pt-2 border-t border-white/5">
+          <IconHeart size={14} />
+          <IconChat size={14} />
+          <IconShare size={14} />
+          <div className="flex-1"></div>
+          <IconBookmark size={14} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Nav ─────────────────────────────────────────────────────────────
+function Nav() {
+  return (
+    <nav className="sticky top-0 z-40 backdrop-blur-md border-b border-white/[0.04] bg-ink-900/60">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
+        <a href="#top" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-glow-400 to-glow-500 flex items-center justify-center shadow-glow">
+            <IconSparkle size={16} className="text-white" strokeWidth={2.5} />
+          </div>
+          <span className="font-display font-bold text-base tracking-tight">
+            ContentCore<span className="text-glow-400">.</span>
+          </span>
+        </a>
+        <div className="hidden md:flex items-center gap-8 text-sm text-white/60 font-medium">
+          <a href="#system" className="hover:text-white transition-colors">System</a>
+          <a href="#stack" className="hover:text-white transition-colors">Stack</a>
+          <a href="#proof" className="hover:text-white transition-colors">Proof</a>
+          <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+        </div>
+        <a
+          href="#book"
+          className="group inline-flex items-center gap-1.5 rounded-full bg-white text-ink-900 text-sm font-semibold px-4 py-2 hover:bg-glow-200 transition-colors"
+        >
+          Book audit
+          <IconArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+        </a>
+      </div>
+    </nav>
+  );
+}
+
+// ── Hero ────────────────────────────────────────────────────────────
+function Hero() {
+  return (
+    <section id="top" className="relative pt-24 pb-32 px-6 lg:px-10 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        {/* Left: copy */}
+        <div className="lg:col-span-6 relative z-10">
+          {/* small badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-glow-400/30 bg-glow-500/10 px-3 py-1.5 text-[11px] font-mono uppercase tracking-[0.18em] text-glow-200 mb-7">
+            <span className="w-1.5 h-1.5 rounded-full bg-glow-300 anim-pulse"></span>
+            Built with Claude · taking 3 clients for May
+          </div>
+
+          <h1 className="display text-5xl md:text-6xl lg:text-7xl">
+            Stop staring at a <span className="text-glow">blank screen</span>.
+            <br />
+            <span className="text-gradient">Let AI build your</span>
+            <br />
+            <span className="text-gradient">SaaS content engine.</span>
+          </h1>
+
+          <p className="mt-7 text-lg text-white/65 max-w-xl leading-relaxed">
+            We help seed-stage B2B SaaS founders show up consistently on Instagram
+            and LinkedIn with premium AI-powered carousels and reels. You just
+            click <span className="text-white font-semibold">approve</span> and post.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center gap-3">
+            <a
+              href="#book"
+              className="group inline-flex items-center gap-2 rounded-full bg-glow-500 hover:bg-glow-400 text-white font-semibold px-6 py-3.5 shadow-glow transition-all hover:shadow-glow-lg"
+            >
+              Book a free content audit
+              <IconArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+            </a>
+            <a
+              href="#system"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.03] hover:bg-white/[0.07] text-white font-medium px-6 py-3.5 transition-colors"
+            >
+              See the system
+            </a>
+          </div>
+
+          {/* social proof line */}
+          <div className="mt-12 flex flex-wrap items-center gap-x-7 gap-y-3 text-[12px] text-white/45 font-medium">
+            <div className="flex items-center gap-1.5">
+              <div className="flex -space-x-2">
+                {["#7c3aed", "#0ea5e9", "#10b981", "#f59e0b"].map((c, i) => (
+                  <div
+                    key={i}
+                    className="w-7 h-7 rounded-full border-2 border-ink-900"
+                    style={{ background: `linear-gradient(135deg, ${c}, ${c}99)` }}
+                  ></div>
+                ))}
+              </div>
+              <span className="ml-2">Trusted by 18 SaaS founders</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <IconStar size={14} className="text-glow-300" style={{ fill: "currentColor" }} />
+              <span>4.9 · 12 founder testimonials</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: floating carousel mockups */}
+        <div className="lg:col-span-6 relative h-[520px] hidden lg:block">
+          <CarouselMockup variant="far" rotation={-14} tx={-30} ty={-20} scale={0.78} zIndex={1} delay="0s" blurred />
+          <CarouselMockup variant="left" rotation={-8} tx={40} ty={20} scale={0.88} zIndex={2} delay="0.6s" />
+          <CarouselMockup variant="primary" rotation={2} tx={150} ty={60} scale={1} zIndex={3} delay="1.2s" />
+          <CarouselMockup variant="right" rotation={10} tx={260} ty={20} scale={0.88} zIndex={2} delay="1.8s" />
+        </div>
+      </div>
+
+      {/* scrim glow under hero */}
+      <div className="pointer-events-none absolute -bottom-32 left-1/2 -translate-x-1/2 w-[1100px] h-[400px] rounded-full bg-glow-500/15 blur-3xl"></div>
+    </section>
+  );
+}
+
+// ── Pain section ────────────────────────────────────────────────────
+function PainSection() {
+  return (
+    <section className="relative px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          <div className="lg:col-span-7">
+            <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-5">
+              The pain
+            </div>
+            <h2 className="display text-4xl md:text-5xl lg:text-6xl mb-7">
+              You ship code on the weekend.
+              <br />
+              You shouldn't be{" "}
+              <span className="italic text-glow">struggling in Canva</span>.
+            </h2>
+            <p className="text-lg text-white/60 leading-relaxed max-w-2xl">
+              You built an incredible product, but explaining it visually to your
+              target market is exhausting. Meanwhile, your competitors are posting
+              mediocre content and eating your lunch. You don't need a bloated
+              marketing agency —
+              <span className="text-white"> you need an automated system.</span>
+            </p>
+          </div>
+
+          {/* Right: 3 pain cards */}
+          <div className="lg:col-span-5 space-y-3">
+            {[
+              { stat: "11", label: "likes per post on a good week" },
+              { stat: "2x", label: "your competitor's posting frequency" },
+              { stat: "0", label: "marketing hires in your budget this quarter" },
+            ].map((p, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur p-5 flex items-baseline gap-5 hover:border-glow-400/30 transition-colors"
+              >
+                <div className="font-display font-bold text-5xl text-gradient leading-none">
+                  {p.stat}
+                </div>
+                <div className="text-sm text-white/55 leading-snug">{p.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── How It Works ────────────────────────────────────────────────────
+function HowItWorksSection() {
+  const timelineData = [
+    {
+      id: 1,
+      title: "Brief",
+      date: "Day 1",
+      content:
+        "You send us a Loom or fill a short form: what you build, who your ICP is, and the one thing you wish everyone understood about your product.",
+      icon: IconBrief,
+      relatedIds: [2],
+      status: "completed",
+      energy: 95,
+    },
+    {
+      id: 2,
+      title: "Claude Engine",
+      date: "Day 2–3",
+      content:
+        "Your inputs feed our proprietary Claude workflow. It generates 30 days of carousel scripts, reel hooks, captions, and hashtags — all in your voice.",
+      icon: IconBrain,
+      relatedIds: [1, 3],
+      status: "in-progress",
+      energy: 88,
+    },
+    {
+      id: 3,
+      title: "Assembly",
+      date: "Day 4–5",
+      content:
+        "Scripts drop into premium dark-mode visual templates. We polish every slide for narrative arc, hook strength, and brand voice before anything ships.",
+      icon: IconLayout,
+      relatedIds: [2, 4],
+      status: "in-progress",
+      energy: 80,
+    },
+    {
+      id: 4,
+      title: "You Post",
+      date: "Every 2 weeks",
+      content:
+        "You receive a Google Drive folder: 10 carousels, captions, hashtags, posting schedule. You hit approve. Total founder time per cycle: 20 minutes.",
+      icon: IconSend,
+      relatedIds: [3],
+      status: "pending",
+      energy: 10,
+    },
+  ];
+
+  return (
+    <section id="system" className="relative px-6 lg:px-10 py-24">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-6">
+          <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-5">
+            How it works
+          </div>
+          <h2 className="display text-4xl md:text-5xl lg:text-6xl max-w-3xl mx-auto">
+            One system,{" "}
+            <span className="text-gradient">four orbits</span>.
+            <br />
+            Three to four hours of your time, total.
+          </h2>
+        </div>
+
+        <RadialOrbitalTimeline timelineData={timelineData} />
+      </div>
+    </section>
+  );
+}
+
+// ── Tech Stack ──────────────────────────────────────────────────────
+function TechStackSection() {
+  const tools = [
+    { name: "Claude", role: "Strategy & copy", glyph: "C", color: "#cc7f4f" },
+    { name: "Canva AI", role: "Visual layouts", glyph: "Cv", color: "#06b6d4" },
+    { name: "CapCut", role: "Reel editing", glyph: "C↗", color: "#000" },
+    { name: "Notion", role: "Calendar delivery", glyph: "N", color: "#fff" },
+    { name: "Opus Clip", role: "Reel auto-edits", glyph: "O", color: "#a78bfa" },
+    { name: "Google Drive", role: "Delivery", glyph: "G", color: "#fbbf24" },
+  ];
+
+  return (
+    <section id="stack" className="relative px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-5">
+            Tech stack
+          </div>
+          <h2 className="display text-4xl md:text-5xl lg:text-6xl">
+            Our tools <span className="text-gradient">& technologies</span>
+          </h2>
+          <p className="mt-5 text-white/55 max-w-2xl mx-auto">
+            A lean, AI-native stack. No bloated agency layers. Total monthly cost
+            for us to run the entire system:{" "}
+            <span className="text-white font-semibold">$13/mo</span>.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {tools.map((t) => (
+            <div
+              key={t.name}
+              className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur p-5 flex flex-col items-center gap-3 hover:border-glow-400/40 hover:bg-glow-500/[0.05] transition-all"
+            >
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center font-display font-bold text-xl border border-white/10"
+                style={{
+                  background: `linear-gradient(135deg, ${t.color}26 0%, ${t.color}05 100%)`,
+                  color: t.color,
+                  boxShadow: `0 0 30px -10px ${t.color}66`,
+                }}
+              >
+                {t.glyph}
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-sm text-white">{t.name}</div>
+                <div className="text-[11px] font-mono uppercase tracking-wider text-white/40 mt-0.5">
+                  {t.role}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Before / After ──────────────────────────────────────────────────
+function BeforeAfterSection() {
+  const [slider, setSlider] = React.useState(52);
+
+  return (
+    <section id="proof" className="relative px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-5">
+            The proof
+          </div>
+          <h2 className="display text-4xl md:text-5xl lg:text-6xl">
+            From <span className="italic text-white/50">invisible side-project</span>
+            <br />
+            to <span className="text-gradient">industry authority</span> in 2 hours.
+          </h2>
+          <p className="mt-5 text-white/55 max-w-2xl mx-auto">
+            Drag the slider. The same product. The same launch. Two completely
+            different content engines.
+          </p>
+        </div>
+
+        {/* Comparison */}
+        <div className="relative w-full max-w-4xl mx-auto aspect-[16/9] rounded-2xl overflow-hidden border border-white/10 bg-ink-700 shadow-card">
+          {/* BEFORE — full layer */}
+          <div className="absolute inset-0 p-10 flex flex-col justify-between"
+               style={{ background: "linear-gradient(170deg, #111827 0%, #0a0a14 100%)" }}>
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-red-300/70 mb-3">
+                Before · the engineer post
+              </div>
+              <div className="font-display font-bold text-2xl md:text-3xl text-white/85 max-w-xl leading-tight">
+                "Excited to ship multi-tenant RBAC with scoped JWTs and sub-50ms
+                p99 latency. 🚀"
+              </div>
+            </div>
+            <div className="flex items-center gap-6 text-white/50 text-xs">
+              <div><span className="font-semibold text-white">11</span> likes</div>
+              <div><span className="font-semibold text-white">0</span> comments</div>
+              <div><span className="font-semibold text-white">0</span> shares</div>
+              <div className="ml-auto text-[10px] font-mono uppercase tracking-wider text-red-300/70">
+                · invisible
+              </div>
+            </div>
+          </div>
+
+          {/* AFTER — clipped layer (reveals from LEFT as slider moves right) */}
+          <div
+            className="absolute inset-0 p-10 flex flex-col justify-between"
+            style={{
+              clipPath: `inset(0 ${100 - slider}% 0 0)`,
+              background: "linear-gradient(170deg, #1a1530 0%, #0d0a18 100%)",
+            }}
+          >
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-3">
+                After · the ContentCore carousel
+              </div>
+              <div className="font-display font-bold text-2xl md:text-3xl text-white max-w-xl leading-tight">
+                "Your sales team can finally stop sharing one login."
+                <span className="block text-glow-300 italic font-medium text-lg mt-2">
+                  + 9 more slides showing the buyer's new Monday.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-6 text-white/70 text-xs">
+              <div><span className="font-semibold text-white">2,431</span> likes</div>
+              <div><span className="font-semibold text-white">68</span> comments</div>
+              <div><span className="font-semibold text-white">412</span> shares</div>
+              <div className="ml-auto text-[10px] font-mono uppercase tracking-wider text-glow-300">
+                · authority
+              </div>
+            </div>
+          </div>
+
+          {/* Divider line */}
+          <div
+            className="absolute top-0 bottom-0 w-px bg-glow-300/80 pointer-events-none"
+            style={{ left: `${slider}%`, boxShadow: "0 0 20px rgba(165,180,252,0.7)" }}
+          >
+            <div
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white shadow-glow flex items-center justify-center"
+            >
+              <IconChevronRight size={14} className="text-ink-900" style={{ transform: "rotate(180deg)" }} />
+              <IconChevronRight size={14} className="text-ink-900" />
+            </div>
+          </div>
+
+          {/* Range input over the whole area */}
+          <input
+            type="range"
+            min={5}
+            max={95}
+            value={slider}
+            onChange={(e) => setSlider(parseInt(e.target.value))}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize"
+            aria-label="Before / after slider"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Testimonials ────────────────────────────────────────────────────
+function TestimonialsSection() {
+  const testimonials = [
+    {
+      id: 1,
+      testimonial:
+        "Three weeks in we hit 2.4k followers from 180. I literally just review and post — it's the cheapest senior hire I've ever made.",
+      author: "Maya Iyer",
+      role: "Founder · Linewise",
+      result: "13× LinkedIn reach",
+      color1: "#7c3aed",
+      color2: "#3b82f6",
+    },
+    {
+      id: 2,
+      testimonial:
+        "Our last agency wanted $4,800/mo and a 6-month commitment. ContentCore ships better carousels in 3 days. It's not a competition.",
+      author: "Devin Park",
+      role: "CMO · Outpost.dev",
+      result: "Cut spend 73%",
+      color1: "#0ea5e9",
+      color2: "#10b981",
+    },
+    {
+      id: 3,
+      testimonial:
+        "I was the bottleneck. Now I'm not. Two months in, three inbound demo requests directly cited posts we'd never have made without them.",
+      author: "Jonas Reeve",
+      role: "Founder · Tactify",
+      result: "3 inbound demos / mo",
+      color1: "#f59e0b",
+      color2: "#ef4444",
+    },
+  ];
+
+  return (
+    <section className="relative px-6 lg:px-10 py-24 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="lg:col-span-5">
+          <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-5">
+            Founder reviews
+          </div>
+          <h2 className="display text-4xl md:text-5xl lg:text-6xl">
+            They used to be <span className="italic text-white/50">invisible</span>.
+            <br />
+            Now they <span className="text-gradient">post every week</span>.
+          </h2>
+          <p className="mt-6 text-white/55 max-w-md leading-relaxed">
+            Drag the top card to the left, or tap below, to flip through. Every
+            quote is from a real seed-stage founder on the retainer.
+          </p>
+        </div>
+
+        <div className="lg:col-span-7 flex justify-center">
+          <ShuffleCards testimonials={testimonials} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Pricing ─────────────────────────────────────────────────────────
+function PricingSection() {
+  const tiers = [
+    {
+      name: "Starter Pack",
+      sub: "One-time · prove the quality",
+      price: "$400",
+      cadence: "one-time",
+      features: [
+        "5 premium carousels",
+        "Captions + hashtags",
+        "48-hour turnaround",
+        "Voice & brand match",
+      ],
+      cta: "Start here",
+      featured: false,
+    },
+    {
+      name: "Core Retainer",
+      sub: "Most founders pick this",
+      price: "$1,200",
+      cadence: "/ month",
+      features: [
+        "8–10 carousels every month",
+        "Captions, hashtags, calendar",
+        "Bi-weekly delivery",
+        "Slack channel for feedback",
+        "Voice-of-founder reviews",
+      ],
+      cta: "Book a call",
+      featured: true,
+    },
+  ];
+
+  return (
+    <section id="pricing" className="relative px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-14">
+          <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-5">
+            Pricing
+          </div>
+          <h2 className="display text-4xl md:text-5xl lg:text-6xl">
+            Transparent. <span className="text-gradient">Like it should be.</span>
+          </h2>
+          <p className="mt-5 text-white/55 max-w-xl mx-auto">
+            No "contact for pricing". You're a founder; your time is the most
+            expensive line item. Read the number, decide in 60 seconds.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+          {tiers.map((t) => (
+            <div
+              key={t.name}
+              className={`
+                relative rounded-3xl p-8 backdrop-blur transition-all
+                ${t.featured
+                  ? "border-2 border-glow-400/50 bg-gradient-to-b from-glow-500/15 to-glow-500/[0.02] shadow-glow"
+                  : "border border-white/10 bg-white/[0.02] hover:border-white/20"
+                }
+              `}
+            >
+              {t.featured && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-glow-400 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.22em] text-ink-900 font-bold">
+                  Most picked
+                </div>
+              )}
+              <div className="flex items-baseline justify-between mb-6">
+                <div>
+                  <div className="font-display font-bold text-2xl text-white">
+                    {t.name}
+                  </div>
+                  <div className="text-[11px] font-mono uppercase tracking-wider text-white/40 mt-1">
+                    {t.sub}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2 mb-7">
+                <div className="font-display font-bold text-6xl text-white">
+                  {t.price}
+                </div>
+                <div className="text-white/45 text-sm">{t.cadence}</div>
+              </div>
+              <ul className="space-y-2.5 mb-8">
+                {t.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-white/75">
+                    <IconCheck size={16} className="text-glow-300 mt-0.5 shrink-0" strokeWidth={2.5} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="#book"
+                className={`
+                  group inline-flex w-full items-center justify-center gap-2 rounded-full font-semibold py-3 transition-all
+                  ${t.featured
+                    ? "bg-white text-ink-900 hover:bg-glow-200"
+                    : "border border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.07]"
+                  }
+                `}
+              >
+                {t.cta}
+                <IconArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+              </a>
+            </div>
+          ))}
+        </div>
+
+        {/* small upsells */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 max-w-4xl mx-auto">
+          {[
+            ["Full Suite", "$2.5–3.5k/mo", "Carousels + reels + thought leadership"],
+            ["Landing Sprint", "$800–1.2k", "Site in 72 hours via Framer/Webflow"],
+            ["Maintenance", "$200/mo", "Updates, copy tweaks, new sections"],
+          ].map(([n, p, d]) => (
+            <div
+              key={n}
+              className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 flex items-center justify-between"
+            >
+              <div>
+                <div className="text-sm font-semibold text-white">{n}</div>
+                <div className="text-[11px] text-white/40 mt-0.5">{d}</div>
+              </div>
+              <div className="font-mono text-[12px] text-glow-300">{p}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Final CTA ───────────────────────────────────────────────────────
+function FinalCTA() {
+  return (
+    <section id="book" className="relative px-6 lg:px-10 py-28">
+      <div className="max-w-4xl mx-auto text-center">
+        {/* big glow plate */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse at center, rgba(99,102,241,0.35) 0%, transparent 60%)",
+            filter: "blur(30px)",
+          }}
+        />
+        <div className="relative">
+          <div className="text-[11px] font-mono uppercase tracking-[0.22em] text-glow-300 mb-6">
+            Final word
+          </div>
+          <h2 className="display text-5xl md:text-6xl lg:text-7xl mb-7">
+            Ready to <span className="text-glow">automate</span>
+            <br />
+            your social presence?
+          </h2>
+          <p className="text-white/65 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+            One 20-minute call. We'll audit your current content, show you what
+            your first month would look like, and quote you on the spot.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="#"
+              className="group inline-flex items-center gap-2 rounded-full bg-glow-500 hover:bg-glow-400 text-white font-semibold px-7 py-4 shadow-glow-lg transition-all"
+            >
+              Let's talk
+              <IconArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </a>
+            <a
+              href="#stack"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.03] text-white font-medium px-6 py-4 hover:bg-white/[0.07] transition-colors"
+            >
+              See the stack again
+            </a>
+          </div>
+
+          <div className="mt-10 text-[11px] font-mono uppercase tracking-[0.22em] text-white/35">
+            DM "rebuild" on Instagram · @contentcore.studio
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Footer ──────────────────────────────────────────────────────────
+function Footer() {
+  return (
+    <footer className="border-t border-white/[0.05] mt-12 px-6 lg:px-10 py-10">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[12px] text-white/40">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-glow-400 to-glow-500 flex items-center justify-center">
+            <IconSparkle size={12} className="text-white" strokeWidth={2.5} />
+          </div>
+          <span className="font-display font-semibold text-white/70">ContentCore Studio</span>
+          <span>· Built with Claude · 2026</span>
+        </div>
+        <div className="flex items-center gap-5 font-medium">
+          <a href="#system" className="hover:text-white transition-colors">System</a>
+          <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+          <a href="#book" className="hover:text-white transition-colors">Book</a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+window.Nav = Nav;
+window.Hero = Hero;
+window.PainSection = PainSection;
+window.HowItWorksSection = HowItWorksSection;
+window.TechStackSection = TechStackSection;
+window.BeforeAfterSection = BeforeAfterSection;
+window.TestimonialsSection = TestimonialsSection;
+window.PricingSection = PricingSection;
+window.FinalCTA = FinalCTA;
+window.Footer = Footer;
+
+</script>
+<script type="text/babel" data-source="bwc-app.jsx">
+// bwc-app.jsx — mounts the ContentCore Studio landing page
+
+function App() {
+  return (
+    <div className="min-h-screen">
+      <Nav />
+      <Hero />
+      <PainSection />
+      <HowItWorksSection />
+      <TechStackSection />
+      <BeforeAfterSection />
+      <TestimonialsSection />
+      <PricingSection />
+      <FinalCTA />
+      <Footer />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContentCore Reel — Carousel Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800;900&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,500;0,700;0,800;0,900;1,700;1,800;1,900&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <link rel="stylesheet" href="v2-reel.css">
+    <script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<body>
+    <div class="reel">
+
+        <!-- LEFT: Scrollable feed -->
+        <main class="r-feed">
+            <header class="r-feed-head">
+                <span class="mark"><span class="b">&lt;</span> BWC <span class="b">/&gt;</span></span>
+                <span class="app">Carousel Reel</span>
+                <input class="title-input" id="title" placeholder="Untitled carousel">
+                <span class="badge" id="deck-badge"></span>
+            </header>
+
+            <div class="r-cards" id="feed-cards"></div>
+        </main>
+
+        <!-- RIGHT: Composer + Inspector -->
+        <aside class="r-composer">
+            <div class="r-comp-head">
+                <span class="ttl">Composer</span>
+                <div class="actions">
+                    <button class="r-btn" id="add-end">＋ Slide</button>
+                    <button class="r-btn primary" id="export">↓ Export</button>
+                </div>
+            </div>
+            <div class="r-comp-body" id="inspector"></div>
+            <div class="r-status" id="status"></div>
+        </aside>
+    </div>
+
+    <script src="shared.js"></script>
+    <script src="v2-reel.js"></script>
+</body>
+</html>
